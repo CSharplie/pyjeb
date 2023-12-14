@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Sandbox debug",
+            "type": "python",
+            "request": "launch",
+            "program": "sandbox.py",
+            "cwd": "${workspaceFolder}/src",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}

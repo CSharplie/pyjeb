@@ -1,0 +1,7 @@
+.venv
+__pycache__
+src/build
+src/dist
+src/pyjeb.egg-info
+src/sandbox
+src/sandbox.py
