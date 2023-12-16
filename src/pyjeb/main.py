@@ -1,5 +1,5 @@
 from datetime import datetime
-from pyjeb.controls import get_controls_of_controls
+from pyjeb.controls import get_controls_of_controls, check_validset
 import re
 
 def get_nested_dict(nested_dict, keys, controls, level):
@@ -101,7 +101,10 @@ def internal_control_and_setup(configuration: dict, controls: list = [], variabl
             configuration[item["name"]] = value
         else:
             set_nested_dict(configuration, levels, value)
-            
+    
+        if "validset" in(item) and item["validset"] != None:
+            check_validset(item["name"], value, item["validset"])
+
     return configuration
     
 
