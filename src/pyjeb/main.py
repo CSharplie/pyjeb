@@ -70,7 +70,7 @@ def set_variable_value(value, variables, functions):
 
     return value    
 
-def internal_control_and_setup(configuration: dict, controls: list = [], variables: dict = {}, functions: dict = {}):
+def internal_control_and_setup(configuration: dict, controls: list = [], variables: dict = {}, functions: dict = {}, context: str = None):
     for item in controls:
         nested = "." in item["name"]
 
@@ -83,7 +83,7 @@ def internal_control_and_setup(configuration: dict, controls: list = [], variabl
             value = get_nested_dict(configuration, levels, controls, item["name"]) 
 
         if value == None and "default" not in item:
-            raise ValueError(f"'{item['name']}' can't be empty")
+            raise ValueError(f"'{item['name']}' property can't be empty in {context}")
         
         elif value == None and not nested:
             configuration[item["name"]] = item["default"]
@@ -106,6 +106,6 @@ def internal_control_and_setup(configuration: dict, controls: list = [], variabl
 def control_and_setup(configuration: any, controls: list = [], variables: dict = {}, functions: dict = {}):
     control_of_control = get_controls_of_controls()
     for current_control in controls:
-        internal_control_and_setup(current_control, control_of_control)
+        internal_control_and_setup(current_control, control_of_control, context= "control configuration")
 
-    return internal_control_and_setup(configuration, controls, variables, functions)
+    return internal_control_and_setup(configuration, controls, variables, functions, context= "configuration")
