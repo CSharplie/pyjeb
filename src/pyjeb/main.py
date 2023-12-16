@@ -106,6 +106,6 @@ def internal_control_and_setup(configuration: dict, controls: list = [], variabl
 def control_and_setup(configuration: any, controls: list = [], variables: dict = {}, functions: dict = {}):
     control_of_control = get_controls_of_controls()
     for current_control in controls:
-        internal_control_and_setup(current_control, control_of_control, context= "control configuration")
+        internal_control_and_setup(current_control, control_of_control, context="control configuration")
 
-    return internal_control_and_setup(configuration, controls, variables, functions, context= "configuration")
+    return internal_control_and_setup(configuration, controls, variables, functions, context="configuration")
