@@ -5,6 +5,6 @@ def get_controls_of_controls():
         },
         {
            "name": "default",
-           "default": None
+           "nocheck" : True,
         }
     ]

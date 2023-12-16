@@ -72,6 +72,9 @@ def set_variable_value(value, variables, functions):
 
 def internal_control_and_setup(configuration: dict, controls: list = [], variables: dict = {}, functions: dict = {}, context: str = None):
     for item in controls:
+        if "nocheck" in item.keys() and item["nocheck"] == True:
+            continue
+
         nested = "." in item["name"]
 
         value = None
