@@ -1,21 +1,22 @@
 from datetime import datetime
+from pyjeb.controls import get_controls_of_controls
 import re
 
-def get_nested_dict(nested_dict, keys, parameters, level):
+def get_nested_dict(nested_dict, keys, controls, level):
     if type(nested_dict) is dict:
         if(keys[0] in nested_dict.keys()):
-            return get_nested_dict(nested_dict[keys[0]], keys[1:], parameters, level)
+            return get_nested_dict(nested_dict[keys[0]], keys[1:], controls, level)
         else:
             return None
     elif type(nested_dict) is list:
         if len(keys) == 0:
             return "__is_list__"
 
-        level_parameters = next((x for x in parameters if x["name"] == level), "default")
-        level_parameters["name"] = keys[0]
+        level_controls = next((x for x in controls if x["name"] == level), "default")
+        level_controls["name"] = keys[0]
 
         for list_item in nested_dict:
-            control_and_setup(list_item, [level_parameters])
+            internal_control_and_setup(list_item, [level_controls])
 
         return "__is_list__"
     else:
@@ -69,9 +70,8 @@ def set_variable_value(value, variables, functions):
 
     return value    
 
-
-def control_and_setup(configuration, parameters, variables = {}, functions = {}):
-    for item in parameters:
+def internal_control_and_setup(configuration: dict, controls: list = [], variables: dict = {}, functions: dict = {}):
+    for item in controls:
         nested = "." in item["name"]
 
         value = None
@@ -80,7 +80,7 @@ def control_and_setup(configuration, parameters, variables = {}, functions = {})
 
         if(nested):
             levels = item["name"].split(".")
-            value = get_nested_dict(configuration, levels, parameters, item["name"]) 
+            value = get_nested_dict(configuration, levels, controls, item["name"]) 
 
         if value == None and "default" not in item:
             raise ValueError(f"'{item['name']}' can't be empty")
@@ -100,3 +100,12 @@ def control_and_setup(configuration, parameters, variables = {}, functions = {})
             set_nested_dict(configuration, levels, value)
             
     return configuration
+    
+
+
+def control_and_setup(configuration: any, controls: list = [], variables: dict = {}, functions: dict = {}):
+    control_of_control = get_controls_of_controls()
+    for current_control in controls:
+        internal_control_and_setup(current_control, control_of_control)
+
+    return internal_control_and_setup(configuration, controls, variables, functions)
