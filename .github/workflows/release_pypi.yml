@@ -5,12 +5,12 @@ on:
     - main
     - sandbox
     paths:
-    - /src/**
+    - src/**
   workflow_dispatch:
 
 jobs:
   tests:
-    name: 'Release'
+    name: 'Tests'
     runs-on: ubuntu-latest
     defaults:
       run:
