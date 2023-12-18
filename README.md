@@ -1,3 +1,5 @@
+# Pyjeb
+
 PyJeb is a lightweight library to check and variabilize your configuration files.
 The main features of pyjeb are:
 
@@ -7,7 +9,19 @@ The main features of pyjeb are:
 * Allow to add executable functions in configuration
 
 # Get started
+## Steps
+1. Install PyJeb package
+2. Setup [control file](/docs/config/controls.md)
+3. Setup [configuration file](/docs/config/config.md)
+4. Call [control_and_setup](#setup_and_control%20function) function
 
+## Install PyJeb
+Install from [PyPi](https://pypi.org/project/pyjeb/) package manager:
+``` shell
+pip install pyjeb
+```
+
+## Exemple
 Setup a configuration file for your script
 
 _Exemple of yaml configuration file - configuration.yaml_
@@ -89,3 +103,22 @@ source.path = '/Landing/HR/Payroll/2023-12-14'
 source.pattern = '*'
 target.path = '/Bronze/HR/Payroll'
 ```
+
+
+# setup_and_control function
+
+The function __control_and_setup__ is the only one to use in PyJeb. It use to apply controls and setup default and variables values.
+
+__Definition:__ control_and_setup(
+    <[configuration](/docs/config/config.md)>,
+    <[controls](/docs/config/controls.md)>,
+    \[<[variables](/docs/variables/custom.md)>],
+    \[<[functions](/docs/variables/custom.md)>]
+)
+
+| Name          | Mandatory | Type | Description |
+|---------------|:---------:|:----:|:------------|
+| configuration |    yes    | Dict | A dictionary (of scalar or array or dictonnary) who contain the configuration to control and variabilize
+| controls      |    yes    | List | A list of dictionnaries who define the structure of configuration. See all about the structure in [controls page](/docs/config/controls.md)
+| variables     |     no    | Dict | Custom variables accessible by configuration. See all about it in [custom variable page](/docs/variables/custom.md)
+| functions     |     no    | Dict | Custom parametrized variables accessible by configuration. See all about it in [custom variable page](/docs/variables/custom.md)
