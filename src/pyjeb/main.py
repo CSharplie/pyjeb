@@ -1,4 +1,4 @@
-from pyjeb.controls import check_empty, get_controls_of_controls, check_validset
+from pyjeb.controls import get_controls_of_controls, check_empty, check_validset, check_regex
 from pyjeb.variables import set_variable_value
 
 def get_nested_dict(nested_dict, keys, controls, level):
@@ -72,6 +72,9 @@ def internal_control_and_setup(configuration: dict, controls: list = [], variabl
     
         if "validset" in(item) and item["validset"] != None:
             check_validset(item_name, item_value, item["validset"])
+
+        if "regex" in(item) and item["regex"] != None:
+            check_regex(item_name, item_value, item["regex"])
 
     return configuration
     

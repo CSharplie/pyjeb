@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime
 from pyjeb.main import control_and_setup, set_variable_value
-from pyjeb.controls import check_validset, check_empty
+from pyjeb.controls import check_regex, check_validset, check_empty
 
 variables = {
     "first_color": "red",
@@ -29,6 +29,11 @@ controls = [
         "name": "colors.hot",
         "default" : "red",
         "validset" : ["red", "yellow"]
+    },
+    {
+        "name": "phone",
+        "default": "+33712345678",
+        "regex": "[+]33[67]\\d{8}"
     }
 ]
 
@@ -59,6 +64,13 @@ def test_empty_control():
 
     assert check_empty("color", "red", True, "configuration") == True
     assert str(exc_notdefault.value) == "'color' property can't be empty in configuration"
+
+def test_regex_control():
+    with pytest.raises(ValueError) as exc_regex:  
+        check_regex("phone", "+21698123456", "[+]33[67]\\d{8}")
+    
+    assert check_regex("phone", "+33712345678", "[+]33[67]\\d{8}") == True
+    assert str(exc_regex.value) == r"'+21698123456' do not match with expression '[+]33[67]\d{8}' for property 'phone'"
 
 def test_configuration_file():
     with pytest.raises(ValueError) as exc_validset:  
