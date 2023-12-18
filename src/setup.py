@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup (
     name = "pyjeb",
-    version = "0.1.6",
+    version = "0.1.7",
     description="A lightweight library to check and variabilize your configuration files",
     long_description="""\
 PyJeb is a lightweight library to check and variabilize your configuration files.
