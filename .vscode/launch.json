@@ -9,6 +9,16 @@
             "cwd": "${workspaceFolder}/src",
             "console": "integratedTerminal",
             "justMyCode": true
-        }
+        },
+        {
+            "name": "Python: Debug Tests",
+            "type": "python",
+            "request": "launch",
+            "program": "tests.py",
+            "purpose": ["debug-test"],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/src",
+            "justMyCode": false
+          }
     ]
 }
