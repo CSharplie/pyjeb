@@ -1,6 +1,5 @@
-from datetime import datetime
-from pyjeb.controls import get_controls_of_controls, check_validset
-import re
+from pyjeb.controls import check_empty, get_controls_of_controls, check_validset
+from pyjeb.variables import set_variable_value
 
 def get_nested_dict(nested_dict, keys, controls, level):
     if type(nested_dict) is dict:
@@ -33,82 +32,49 @@ def set_nested_dict(nested_dict, keys, new_value):
         if key in nested_dict:
             set_nested_dict(nested_dict[key], keys[1:], new_value)
 
-def convert_timestamp_format(timestamp):
-    if timestamp == "":
-        return "%Y%m%d"
-
-    timestamp = timestamp.replace("yyyy", "%Y")
-    timestamp = timestamp.replace("mm", "%m")
-    timestamp = timestamp.replace("dd", "%d")
-    return timestamp
-
-def set_variable_value(value, variables, functions):
-    if type(value) is dict or type(value) is list or value == None:
-        return value
-
-    for match in re.findall(r"(\$(func|var|sys)\.([\w\d]+)(\('([\w\d\/\\ \-]+)'\)){0,1})", value):
-        old_value, mode, name, details = match[0], match[1], match[2], match[4]
-        new_value = old_value
-
-        if mode == "sys":
-            match name:
-                case "timestamp":
-                    format = convert_timestamp_format(details)
-                    new_value = datetime.today().strftime(format)
-        elif mode == "var":
-            if name in variables.keys():
-                new_value = variables[name]
-        elif mode == "func":
-            try:
-                if name in functions.keys():
-                    new_value = functions[name](details)
-            except:
-                pass
-
-        if old_value != new_value:
-            value = value.replace(old_value, new_value)
-
-    return value    
-
 def internal_control_and_setup(configuration: dict, controls: list = [], variables: dict = {}, functions: dict = {}, context: str = None):
     for item in controls:
         if "nocheck" in item.keys() and item["nocheck"] == True:
             continue
 
-        nested = "." in item["name"]
+        default_defined = "default" in item
+        default_value = item["default"] if default_defined else None
 
-        value = None
-        if(not nested and item["name"] in configuration.keys()):
-            value = configuration[item["name"]]
+        item_name = item["name"]
+        is_nested = "." in item_name
 
-        if(nested):
-            levels = item["name"].split(".")
-            value = get_nested_dict(configuration, levels, controls, item["name"]) 
+        # get value from configuration node
+        item_value = None
+        if not is_nested and item_name in configuration.keys():
+            item_value = configuration[item_name]
 
-        if value == None and "default" not in item:
-            raise ValueError(f"'{item['name']}' property can't be empty in {context}")
+        if is_nested:
+            levels = item_name.split(".")
+            item_value = get_nested_dict(configuration, levels, controls, item_name) 
+
+        check_empty(item_name, item_value, default_defined, context)
         
-        elif value == None and not nested:
-            configuration[item["name"]] = item["default"]
-            value = item["default"]
+        # setup default value
+        if item_value == None and not is_nested:
+            configuration[item_name] = default_value
+            item_value = default_value
 
-        elif value == None and nested:
-            set_nested_dict(configuration, levels, item["default"])
-            value = item["default"]
+        elif item_value == None and is_nested:
+            set_nested_dict(configuration, levels, default_value)
+            item_value = default_value
 
-        value = set_variable_value(value, variables, functions)
-        if(not nested):
-            configuration[item["name"]] = value
+        # setup variables values
+        item_value = set_variable_value(item_value, variables, functions)
+        if(not is_nested):
+            configuration[item_name] = item_value
         else:
-            set_nested_dict(configuration, levels, value)
+            set_nested_dict(configuration, levels, item_value)
     
         if "validset" in(item) and item["validset"] != None:
-            check_validset(item["name"], value, item["validset"])
+            check_validset(item_name, item_value, item["validset"])
 
     return configuration
     
-
-
 def control_and_setup(configuration: any, controls: list = [], variables: dict = {}, functions: dict = {}):
     control_of_control = get_controls_of_controls()
     for current_control in controls:
