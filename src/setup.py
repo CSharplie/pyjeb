@@ -1,19 +1,18 @@
 from setuptools import setup, find_packages
 
+with open('../README.md') as f:
+    long_description = "".join(f.readlines())
+
+# replace relative link by absolute github link
+long_description = long_description.replace("(/", "(https://github.com/CSharplie/pyjeb/blob/main/")
+print(long_description)
+
+
 setup (
     name = "pyjeb",
-    version = "0.1.7",
+    version = "0.1.8",
     description="A lightweight library to check and variabilize your configuration files",
-    long_description="""\
-PyJeb is a lightweight library to check and variabilize your configuration files.
-The main features of pyjeb are:
-
-* Control the structure of a configuration file
-* Add default value for missing fields
-* Setup variable values (system or user defined)
-* Allow to add executable functions in configuration
-
-        """,
+    long_description=long_description,
     url="https://github.com/CSharplie/pyjeb/",
     project_urls={
         "Bug Tracker": "https://github.com/CSharplie/pyjeb/issues",
