@@ -170,6 +170,9 @@ def test_configuration_file_exceptions():
     with pytest.raises(InvalidParameterException) as exc_empty:  
         control_and_setup({ "path": "/root/$var.first_color", "colors": { "hot": "red" } }, controls, variables, functions)
 
+    with pytest.raises(InvalidParameterException) as exc_regex:  
+        control_and_setup({ "path": "/root/$var.first_color", "colors": { "cold": "blue" }, "phone": "Back & Yellow" }, controls, variables, functions)
+
     with pytest.raises(InvalidParameterException) as exc_type_int:  
         control_and_setup({ "path": "/root/$var.first_color", "colors": { "cold": "blue" }, "count": True }, controls, variables, functions)
 
@@ -181,6 +184,7 @@ def test_configuration_file_exceptions():
 
     assert str(exc_validset.value) == "Property 'colors.cold' ('blue', 'green') has invalid value 'yellow'"
     assert str(exc_empty.value) == "Property 'colors.cold' can't be empty"
+    assert str(exc_regex.value) == "Property 'phone' ([+]33[67]\\d{8}) has invalid value 'Back & Yellow'"
     assert str(exc_type_int.value) == "Property 'count' (integer) has invalid value 'True'"
     assert str(exc_type_bool.value) == "Property 'active' (boolean) has invalid value '10.5'"
     assert str(exc_type_decimal.value) == "Property 'threshold' (decimal) has invalid value 'True'"
