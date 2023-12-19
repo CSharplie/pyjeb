@@ -15,6 +15,8 @@ def set_variable_value(value, variables, functions):
     if type(value) is dict or type(value) is list or value == None:
         return value
 
+    value = str(value)
+    
     for match in re.findall(r"(\$(func|var|sys)\.([\w\d]+)(\('([\w\d\/\\ \-]+)'\)){0,1})", value):
         old_value, mode, name, details = match[0], match[1], match[2], match[4]
         new_value = old_value
