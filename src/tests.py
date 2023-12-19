@@ -2,6 +2,7 @@ import pytest
 from datetime import datetime
 from pyjeb.main import control_and_setup, set_variable_value
 from pyjeb.controls import check_regex, check_type, check_validset, check_empty, cast_to_type
+from pyjeb.exception import InvalidParameterException
 
 variables = {
     "first_color": "red",
@@ -140,10 +141,10 @@ def test_configuration_file_success():
     assert config_success["colors"]["hot"] == "red"
 
 def test_configuration_file_exceptions():
-    with pytest.raises(ValueError) as exc_validset:  
+    with pytest.raises(InvalidParameterException) as exc_validset:  
         control_and_setup({ "path": "/root/$var.first_color", "colors": { "cold": "yellow" } }, controls, variables, functions)
     
-    with pytest.raises(ValueError) as exc_empty:  
+    with pytest.raises(InvalidParameterException) as exc_empty:  
         control_and_setup({ "path": "/root/$var.first_color", "colors": { "hot": "red" } }, controls, variables, functions)
 
     assert str(exc_validset.value) == "Property 'colors.cold' ('blue', 'green') has invalid value 'yellow'"
