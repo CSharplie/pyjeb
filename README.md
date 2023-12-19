@@ -13,7 +13,7 @@ The main features of pyjeb are:
 1. Install PyJeb package
 2. Setup [control file](/docs/config/controls.md)
 3. Setup [configuration file](/docs/config/config.md)
-4. Call [control_and_setup](#setup_and_control%20function) function
+4. Call [control_and_setup](#setup_and_control-function) function
 
 ## Install PyJeb
 Install from [PyPi](https://pypi.org/project/pyjeb/) package manager:
