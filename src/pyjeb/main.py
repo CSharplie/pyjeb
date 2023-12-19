@@ -79,8 +79,8 @@ def internal_control_and_setup(configuration: dict, controls: list = [], variabl
             check_validset(item_name, item_value, item["validset"])
 
         # check regex value
-        if "regex" in(item) and item["regex"] != None:
-            check_regex(item_name, item_value, item["regex"])
+        if "regex" in(item) and item["regex"] != None and not check_regex(item_name, item_value, item["regex"]):
+            raise ValueError(f"Property '{item_name}' ({item['regex']}) has invalid value '{item_value}'")
 
         # apply new value on configuration
         if(not is_nested):

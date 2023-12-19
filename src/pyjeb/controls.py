@@ -48,10 +48,7 @@ def check_validset(name, value, validset):
    return True
 
 def check_regex(name, value, expression):
-   if not re.match(expression, value):
-      raise ValueError(f"'{value}' do not match with expression '{expression}' for property '{name}'")
-
-   return True
+   return re.match(expression, value) is not None
 
 def check_type(value, value_type):
    match value_type.lower():

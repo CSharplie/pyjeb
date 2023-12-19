@@ -66,11 +66,8 @@ def test_empty_control():
     assert str(exc_notdefault.value) == "'color' property can't be empty in configuration"
 
 def test_regex_control():
-    with pytest.raises(ValueError) as exc_regex:  
-        check_regex("phone", "+21698123456", "[+]33[67]\\d{8}")
-    
     assert check_regex("phone", "+33712345678", "[+]33[67]\\d{8}") == True
-    assert str(exc_regex.value) == r"'+21698123456' do not match with expression '[+]33[67]\d{8}' for property 'phone'"
+    assert check_regex("phone", "+21698123456", "[+]33[67]\\d{8}") == False
 
 def test_type_control():
     test_matrice = [
