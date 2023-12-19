@@ -34,18 +34,8 @@ def check_empty(name, value, default_defined, context):
       raise ValueError(f"'{name}' property can't be empty in {context}")
    return True
 
-def check_validset(name, value, validset):
-   if type(validset) is str or type(validset) is int:
-      validset = [validset]
-
-   if type(validset) is not list:
-      raise ValueError(f"'validset' property must be a string or array")
-   
-   validset_str = "', '".join(validset)
-   if value not in validset:
-      raise ValueError(f"'{value}' is not a valid value for property '{name}'. The value must be one of these values: '{validset_str}'")
-
-   return True
+def check_validset(value, validset):
+   return value in validset
 
 def check_regex(name, value, expression):
    return re.match(expression, value) is not None

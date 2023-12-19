@@ -75,8 +75,9 @@ def internal_control_and_setup(configuration: dict, controls: list = [], variabl
                 raise ValueError(f"Property '{item_name}' ({item['type']}) has invalid value '{item_value}'")
 
         # check validset value
-        if "validset" in(item) and item["validset"] != None:
-            check_validset(item_name, item_value, item["validset"])
+        if "validset" in(item) and item["validset"] != None and not check_validset(item_value, item["validset"]):
+            allowed_values = "', '".join(item["validset"])
+            raise ValueError(f"Property '{item_name}' ('{allowed_values}') has invalid value '{item_value}'")
 
         # check regex value
         if "regex" in(item) and item["regex"] != None and not check_regex(item_name, item_value, item["regex"]):

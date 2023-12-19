@@ -48,15 +48,12 @@ def tests_variable_setup():
 def test_validset_control():
     allowed_colors = ["red", "blue", "yellow"]
 
-    with pytest.raises(ValueError) as exc_nomatch:  
-        check_validset("color", "green", allowed_colors)  
-    
-    with pytest.raises(ValueError) as exc_badtype:  
-        check_validset("color", "green", { "red" : True })  
+    assert check_validset("blue", allowed_colors) == True
+    assert check_validset("yellow", allowed_colors) == True
+    assert check_validset("red", allowed_colors) == True
+    assert check_validset("orange", allowed_colors) == False
+    assert check_validset("green", allowed_colors) == False
 
-    assert str(exc_badtype.value) == "'validset' property must be a string or array"
-    assert str(exc_nomatch.value) == "'green' is not a valid value for property 'color'. The value must be one of these values: 'red', 'blue', 'yellow'"
-    assert check_validset("color", "blue", allowed_colors) == True
 
 def test_empty_control():
     with pytest.raises(ValueError) as exc_notdefault:  
@@ -134,18 +131,19 @@ def test_cast_to_type():
         assert cast_to_type(test["input"], test["type_str"]) == test["output"]
 
 
-def test_configuration_file():
-    with pytest.raises(ValueError) as exc_validset:  
-        control_and_setup({ "path": "/root/$var.first_color", "colors": { "cold": "yellow" } }, controls, variables, functions)
-    
-    with pytest.raises(ValueError) as exc_empty:  
-        control_and_setup({ "path": "/root/$var.first_color", "colors": { "hot": "red" } }, controls, variables, functions)
-
+def test_configuration_file_success():
     config_success = control_and_setup({ "path": "/root/$var.first_color", "colors": { "cold": "blue" } }, controls, variables, functions)
 
     assert config_success["path"] == "/root/red"
     assert config_success["colors"]["cold"] == "blue"
     assert config_success["colors"]["hot"] == "red"
 
-    assert str(exc_validset.value) == "'yellow' is not a valid value for property 'colors.cold'. The value must be one of these values: 'blue', 'green'"
+def test_configuration_file_exceptions():
+    with pytest.raises(ValueError) as exc_validset:  
+        control_and_setup({ "path": "/root/$var.first_color", "colors": { "cold": "yellow" } }, controls, variables, functions)
+    
+    with pytest.raises(ValueError) as exc_empty:  
+        control_and_setup({ "path": "/root/$var.first_color", "colors": { "hot": "red" } }, controls, variables, functions)
+
+    assert str(exc_validset.value) == "Property 'colors.cold' ('blue', 'green') has invalid value 'yellow'"
     assert str(exc_empty.value) == "'colors.cold' property can't be empty in configuration"
