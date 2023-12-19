@@ -10,7 +10,7 @@ print(long_description)
 
 setup (
     name = "pyjeb",
-    version = "0.1.8",
+    version = "0.1.9",
     description="A lightweight library to check and variabilize your configuration files",
     long_description=long_description,
     long_description_content_type="text/markdown",
