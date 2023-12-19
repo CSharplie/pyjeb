@@ -17,24 +17,44 @@ functions = {
 controls = [
     {
         "name": "path",
+        "type": "string"
     },
     {
         "name": "pattern",
-        "default" : "*"
+        "type": "string",
+        "default" : "*",
     },
     {
         "name": "colors.cold",
+        "type": "string",
         "validset" : ["blue", "green"]
     },
     {
         "name": "colors.hot",
+        "type": "string",
         "default" : "red",
         "validset" : ["red", "yellow"]
     },
     {
         "name": "phone",
+        "type": "string",
         "default": "+33712345678",
         "regex": "[+]33[67]\\d{8}"
+    },
+    {
+        "name": "count",
+        "type": "integer",
+        "default" : 0
+    },
+    {
+        "name": "threshold",
+        "type": "decimal",
+        "default" : 0.90
+    },
+    {
+        "name": "active",
+        "type": "boolean",
+        "default" : True
     }
 ]
 
@@ -134,11 +154,14 @@ def test_cast_to_type():
 
 
 def test_configuration_file_success():
-    config_success = control_and_setup({ "path": "/root/$var.first_color", "colors": { "cold": "blue" } }, controls, variables, functions)
+    config_success = control_and_setup({ "path": "/root/$var.first_color", "colors": { "cold": "blue" }, "count": 10, "active": False }, controls, variables, functions)
 
     assert config_success["path"] == "/root/red"
     assert config_success["colors"]["cold"] == "blue"
     assert config_success["colors"]["hot"] == "red"
+    assert config_success["count"] == 10
+    assert config_success["active"] == False
+    assert config_success["threshold"] == 0.9
 
 def test_configuration_file_exceptions():
     with pytest.raises(InvalidParameterException) as exc_validset:  
@@ -147,5 +170,18 @@ def test_configuration_file_exceptions():
     with pytest.raises(InvalidParameterException) as exc_empty:  
         control_and_setup({ "path": "/root/$var.first_color", "colors": { "hot": "red" } }, controls, variables, functions)
 
+    with pytest.raises(InvalidParameterException) as exc_type_int:  
+        control_and_setup({ "path": "/root/$var.first_color", "colors": { "cold": "blue" }, "count": True }, controls, variables, functions)
+
+    with pytest.raises(InvalidParameterException) as exc_type_bool:  
+        control_and_setup({ "path": "/root/$var.first_color", "colors": { "cold": "blue" }, "active": 10.5 }, controls, variables, functions)
+
+    with pytest.raises(InvalidParameterException) as exc_type_decimal:  
+        control_and_setup({ "path": "/root/$var.first_color", "colors": { "cold": "blue" }, "threshold": True }, controls, variables, functions)
+
     assert str(exc_validset.value) == "Property 'colors.cold' ('blue', 'green') has invalid value 'yellow'"
     assert str(exc_empty.value) == "Property 'colors.cold' can't be empty"
+    assert str(exc_type_int.value) == "Property 'count' (integer) has invalid value 'True'"
+    assert str(exc_type_bool.value) == "Property 'active' (boolean) has invalid value '10.5'"
+    assert str(exc_type_decimal.value) == "Property 'threshold' (decimal) has invalid value 'True'"
+
