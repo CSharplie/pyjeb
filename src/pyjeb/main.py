@@ -1,5 +1,7 @@
-from pyjeb.controls import get_controls_of_controls, check_empty, check_validset, check_regex
+from pyjeb.controls import cast_to_type, check_type, get_controls_of_controls, check_empty, check_validset, check_regex
 from pyjeb.variables import set_variable_value
+from pyjeb.exception import InvalidParameterException
+
 
 def get_nested_dict(nested_dict, keys, controls, level):
     if type(nested_dict) is dict:
@@ -52,8 +54,10 @@ def internal_control_and_setup(configuration: dict, controls: list = [], variabl
             levels = item_name.split(".")
             item_value = get_nested_dict(configuration, levels, controls, item_name) 
 
-        check_empty(item_name, item_value, default_defined, context)
-        
+        # check empty
+        if not check_empty(item_value, default_defined):
+            raise InvalidParameterException(f"Property '{item_name}' can't be empty")
+
         # setup default value
         if item_value == None and not is_nested:
             configuration[item_name] = default_value
@@ -65,16 +69,28 @@ def internal_control_and_setup(configuration: dict, controls: list = [], variabl
 
         # setup variables values
         item_value = set_variable_value(item_value, variables, functions)
+   
+        # check type and recast
+        if item_value is not None and "type" in(item) and item["type"] != None: 
+            if check_type(item_value, item["type"]):
+                item_value = cast_to_type(item_value, item["type"])
+            else:
+                raise InvalidParameterException(f"Property '{item_name}' ({item['type']}) has invalid value '{item_value}'")
+
+        # check validset value
+        if "validset" in(item) and item["validset"] != None and not check_validset(item_value, item["validset"]):
+            allowed_values = "', '".join(item["validset"])
+            raise InvalidParameterException(f"Property '{item_name}' ('{allowed_values}') has invalid value '{item_value}'")
+
+        # check regex value
+        if "regex" in(item) and item["regex"] != None and not check_regex(item_name, item_value, item["regex"]):
+            raise InvalidParameterException(f"Property '{item_name}' ({item['regex']}) has invalid value '{item_value}'")
+
+        # apply new value on configuration
         if(not is_nested):
             configuration[item_name] = item_value
         else:
             set_nested_dict(configuration, levels, item_value)
-    
-        if "validset" in(item) and item["validset"] != None:
-            check_validset(item_name, item_value, item["validset"])
-
-        if "regex" in(item) and item["regex"] != None:
-            check_regex(item_name, item_value, item["regex"])
 
     return configuration
     
