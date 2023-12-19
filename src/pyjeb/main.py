@@ -53,8 +53,9 @@ def internal_control_and_setup(configuration: dict, controls: list = [], variabl
             item_value = get_nested_dict(configuration, levels, controls, item_name) 
 
         # check empty
-        check_empty(item_name, item_value, default_defined, context)
-        
+        if not check_empty(item_value, default_defined):
+            raise ValueError(f"Property '{item_name}' can't be empty")
+
         # setup default value
         if item_value == None and not is_nested:
             configuration[item_name] = default_value

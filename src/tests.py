@@ -56,11 +56,12 @@ def test_validset_control():
 
 
 def test_empty_control():
-    with pytest.raises(ValueError) as exc_notdefault:  
-        check_empty("color", None, False, "configuration")
-
-    assert check_empty("color", "red", True, "configuration") == True
-    assert str(exc_notdefault.value) == "'color' property can't be empty in configuration"
+    assert check_empty("red", True) == True
+    assert check_empty("", True) == True
+    assert check_empty(None, True) == True
+    assert check_empty("red", False) == True
+    assert check_empty("", False) == False
+    assert check_empty(None, False) == False
 
 def test_regex_control():
     assert check_regex("phone", "+33712345678", "[+]33[67]\\d{8}") == True
@@ -146,4 +147,4 @@ def test_configuration_file_exceptions():
         control_and_setup({ "path": "/root/$var.first_color", "colors": { "hot": "red" } }, controls, variables, functions)
 
     assert str(exc_validset.value) == "Property 'colors.cold' ('blue', 'green') has invalid value 'yellow'"
-    assert str(exc_empty.value) == "'colors.cold' property can't be empty in configuration"
+    assert str(exc_empty.value) == "Property 'colors.cold' can't be empty"

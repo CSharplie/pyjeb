@@ -29,10 +29,8 @@ def get_controls_of_controls():
          },
     ]
 
-def check_empty(name, value, default_defined, context):
-   if value == None and not default_defined:
-      raise ValueError(f"'{name}' property can't be empty in {context}")
-   return True
+def check_empty(value, default_defined):
+   return not((value == None or str(value) == "")and not default_defined)
 
 def check_validset(value, validset):
    return value in validset
