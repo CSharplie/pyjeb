@@ -21,8 +21,11 @@ jobs:
     - name: Install requirements
       run: | 
         pip install -U pytest==7.1.3
+        pip install -U pylint==3.0.3
     - name: Execute tests
       run: pytest -rx tests.py --verbose
+    - name: Execute linter
+      run: pylint *
 
   publish-dev:
     needs: [local-tests]

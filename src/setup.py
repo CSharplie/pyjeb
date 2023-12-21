@@ -1,16 +1,17 @@
+"""Setup PyPi module"""
+# pylint: disable=C0103
+
 from setuptools import setup, find_packages
 
-with open('../README.md') as f:
+with open("../README.md", encoding="UTF-8") as f:
     long_description = "".join(f.readlines())
 
 # replace relative link by absolute github link
 long_description = long_description.replace("(/", "(https://github.com/CSharplie/pyjeb/blob/main/")
-print(long_description)
-
 
 setup (
     name = "pyjeb",
-    version = "0.1.9",
+    version = "0.1.10",
     description="A lightweight library to check and variabilize your configuration files",
     long_description=long_description,
     long_description_content_type="text/markdown",
