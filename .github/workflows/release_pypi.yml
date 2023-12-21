@@ -3,14 +3,13 @@ on:
   push:
     branches:
     - main
-    - sandbox
     paths:
     - src/**
   workflow_dispatch:
 
 jobs:
-  tests:
-    name: 'Tests'
+  local-tests:
+    name: 'Execute tests locally'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -24,9 +23,53 @@ jobs:
         pip install -U pytest==7.1.3
     - name: Execute tests
       run: pytest -rx tests.py --verbose
-  publish:
-    needs: [tests]
-    name: 'Release'
+
+  publish-dev:
+    needs: [local-tests]
+    name: 'Publish on PyPi (Test)'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: src/
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Install requirements
+      run: | 
+        pip install wheel==0.42.0
+        pip install twine==4.0.2
+        pip install setuptools==65.5.0
+    - name: Build package
+      run: python setup.py sdist bdist_wheel
+    - name: Check package
+      run: twine check dist/*
+    - name: Publish
+      run: twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u ${{ secrets.PYPI_TEST_USER }} -p '${{ secrets.PYPI_TEST_PASSWORD }}'
+
+  pypi-tests-dev:
+    needs: [publish-dev]
+    name: 'Test PyPi package (Test)'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: src/
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Install requirements
+      run: | 
+        pip install -U pytest==7.1.3
+    - name: Install PyJeb
+      run: |
+        pip install -i https://test.pypi.org/simple/ pyjeb
+    - name: Execute tests
+      run: pytest -rx tests.py -k "test_configuration_file_success or test_configuration_file_exceptions" --verbose
+    
+  publish-prd:
+    needs: [pypi-tests-dev]
+    name: 'Publish on PyPi (Production)'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -46,3 +89,23 @@ jobs:
       run: twine check dist/*
     - name: Publish
       run: twine upload --repository-url https://upload.pypi.org/legacy/ dist/* -u ${{ secrets.PYPI_USER }} -p '${{ secrets.PYPI_PASSWORD }}'
+
+  pypi-tests-prd:
+    needs: [publish-prd]
+    name: 'Test PyPi package (Production)'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: src/
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Install requirements
+      run: | 
+        pip install -U pytest==7.1.3
+    - name: Install PyJeb
+      run: |
+        pip install pyjeb
+    - name: Execute tests
+      run: pytest -rx tests.py -k "test_configuration_file_success or test_configuration_file_exceptions" --verbose
