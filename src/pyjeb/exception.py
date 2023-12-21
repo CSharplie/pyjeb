@@ -1,2 +1,7 @@
+"""PyJeb Exceptions"""
+
 class InvalidParameterException(Exception):
-    pass
+    """Invalid parameter exception"""
+
+class CustomFunctionException(Exception):
+    """Custom parameter exception"""

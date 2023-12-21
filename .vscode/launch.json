@@ -14,9 +14,10 @@
             "name": "Python: Debug Tests",
             "type": "python",
             "request": "launch",
-            "program": "tests.py",
+            "program": "pytest",
             "purpose": ["debug-test"],
             "console": "integratedTerminal",
+            "args": ["-rx", "tests.py", "--verbose "],
             "cwd": "${workspaceFolder}/src",
             "justMyCode": false
           }
