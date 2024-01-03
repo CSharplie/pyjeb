@@ -179,7 +179,7 @@ def test_cast_to_type():
 def test_configuration_file_success():
     """Test test_configuration_file_success with correct sample"""
 
-    config_success = control_and_setup({ 
+    config_success = control_and_setup({
         "path": "/root/$var.first_color",
         "colors": { "cold": "blue" },
         "count": 10,
@@ -189,7 +189,7 @@ def test_configuration_file_success():
                 "test 1",
                 "test 2"
             ]
-        } 
+        }
     }, controls, variables, functions)
 
     assert config_success["path"] == "/root/red"
