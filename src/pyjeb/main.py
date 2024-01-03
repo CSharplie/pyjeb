@@ -13,7 +13,7 @@ def get_nested_dict(nested_dict, keys, controls, level):
             return get_nested_dict(nested_dict[keys[0]], keys[1:], controls, level)
     elif isinstance(nested_dict, list):
         if len(keys) == 0:
-            return "__is_list__"
+            return nested_dict
 
         level_controls = next((x for x in controls if x["name"] == level), "default")
         level_controls["name"] = keys[0]

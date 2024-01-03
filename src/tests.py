@@ -57,6 +57,16 @@ controls = [
         "name": "active",
         "type": "boolean",
         "default" : True
+    },
+    {
+        "name": "options",
+        "type": "dict",
+        "default" : {}
+    },
+    {
+        "name": "options.ignore",
+        "type": "list",
+        "default" : []
     }
 ]
 
@@ -169,7 +179,18 @@ def test_cast_to_type():
 def test_configuration_file_success():
     """Test test_configuration_file_success with correct sample"""
 
-    config_success = control_and_setup({ "path": "/root/$var.first_color", "colors": { "cold": "blue" }, "count": 10, "active": False }, controls, variables, functions)
+    config_success = control_and_setup({ 
+        "path": "/root/$var.first_color",
+        "colors": { "cold": "blue" },
+        "count": 10,
+        "active": False, 
+        "options": {
+            "ignore": [
+                "test 1",
+                "test 2"
+            ]
+        } 
+    }, controls, variables, functions)
 
     assert config_success["path"] == "/root/red"
     assert config_success["colors"]["cold"] == "blue"
@@ -177,6 +198,7 @@ def test_configuration_file_success():
     assert config_success["count"] == 10
     assert config_success["active"] is False
     assert config_success["threshold"] == 0.9
+    assert config_success["options"]["ignore"] == ["test 1", "test 2"]
 
 def test_configuration_file_exceptions():
     """Test test_configuration_file_success with incorrect sample"""
