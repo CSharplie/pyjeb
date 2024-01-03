@@ -102,7 +102,7 @@ def internal_control_and_setup(configuration: dict, controls: list, variables: d
 
     return configuration
 
-def control_and_setup(configuration: any, controls: list, variables: dict, functions: dict):
+def control_and_setup(configuration: any, controls: list, variables: dict = None, functions: dict = None):
     """Apply controls on configuration and setup variables"""
 
     if controls is None:
