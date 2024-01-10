@@ -1,5 +1,6 @@
 """Mains functions of PyJeb"""
 
+import copy
 from pyjeb.controls import cast_to_type, check_type, get_controls_of_controls, check_empty, check_validset, check_regex
 from pyjeb.variables import set_variable_value
 from pyjeb.exception import InvalidParameterException
@@ -61,6 +62,8 @@ def internal_control_and_setup(configuration: dict, controls: list, variables: d
         if is_nested:
             levels = item_name.split(".")
             item_value = get_nested_dict(configuration, levels, controls, item_name)
+            if item_value == "__is_list__":
+                continue
 
         # check empty
         if not check_empty(item_value, default_defined):
@@ -104,6 +107,8 @@ def internal_control_and_setup(configuration: dict, controls: list, variables: d
 
 def control_and_setup(configuration: any, controls: list, variables: dict = None, functions: dict = None):
     """Apply controls on configuration and setup variables"""
+
+    controls = copy.deepcopy(controls)
 
     if controls is None:
         controls = []

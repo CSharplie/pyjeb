@@ -70,6 +70,14 @@ controls = [
     }
 ]
 
+controls_nested = [
+    { "name": "vehicles", "type": "dict" },
+    { "name": "vehicles.cars", "type": "list" },
+    { "name": "vehicles.cars.color", "validset": ["red", "blue"] },
+    { "name": "vehicles.cars.is_broken", "type": "boolean", "default": False },
+    { "name": "vehicles.cars.buy_date" }
+]
+
 
 def tests_variable_setup():
     """Test set_variable_value function. Ensure the sys/var/func is assigned"""
@@ -227,3 +235,59 @@ def test_configuration_file_exceptions():
     assert str(exc_type_int.value) == "Property 'count' (integer) has invalid value 'True'"
     assert str(exc_type_bool.value) == "Property 'active' (boolean) has invalid value '10.5'"
     assert str(exc_type_decimal.value) == "Property 'threshold' (decimal) has invalid value 'True'"
+
+
+def test_nested_configuration_file_success():
+    """Test test_configuration_file_success with correct sample"""
+
+    configuration = {
+        "vehicles": {
+            "cars": [
+                { "color": "red", "buy_date": "2022-05-24" },
+                { "color": "blue", "is_broken": True, "buy_date": "$sys.timestamp('YYYY-MM-DD')" }
+            ]
+        }
+    }
+
+    configuration = control_and_setup(configuration, controls_nested)
+
+    assert configuration["vehicles"]["cars"][1]["buy_date"] == datetime.today().strftime("%Y-%m-%d")
+    assert configuration["vehicles"]["cars"][0]["is_broken"] is False
+
+def test_nested_configuration_file_exceptions():
+    """Test test_configuration_file_success with incorrect sample"""
+
+    with pytest.raises(InvalidParameterException) as exc_type:
+        control_and_setup({
+            "vehicles": {
+                "cars": [
+                    { "color": "red", "buy_date": "2022-05-24" },
+                    { "color": "blue", "is_broken": "ok", "buy_date": "$sys.timestamp('YYYY-MM-DD')" }
+                ]
+            }
+        }, controls_nested)
+
+    with pytest.raises(InvalidParameterException) as exc_validset:
+        control_and_setup({
+            "vehicles": {
+                "cars": [
+                    { "color": "yellow", "buy_date": "2022-05-24" },
+                    { "color": "blue", "is_broken": True, "buy_date": "$sys.timestamp('YYYY-MM-DD')" }
+                ]
+            }
+        }, controls_nested)
+
+    with pytest.raises(InvalidParameterException) as exc_empty:
+        control_and_setup({
+            "vehicles": {
+                "cars": [
+                    { "color": "red", "buy_date": "2022-05-24" },
+                    { "color": "blue", "is_broken": True }
+                ]
+            }
+        }, controls_nested)
+
+
+    assert str(exc_validset.value) == "Property 'color' ('red', 'blue') has invalid value 'yellow'"
+    assert str(exc_empty.value) == "Property 'buy_date' can't be empty"
+    assert str(exc_type.value) == "Property 'is_broken' (boolean) has invalid value 'ok'"
