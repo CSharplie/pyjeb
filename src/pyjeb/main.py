@@ -1,10 +1,19 @@
 """Mains functions of PyJeb"""
 
 import copy
+import dataclasses
+import json
+
 from pyjeb.controls import cast_to_type, check_type, get_controls_of_controls, check_empty, check_validset, check_regex
 from pyjeb.variables import set_variable_value
 from pyjeb.exception import InvalidParameterException
 
+@dataclasses.dataclass
+class ConfigurationObject:
+    """class to wrap export to oject"""
+
+    def __init__(self, obj):
+        self.__dict__.update(obj)
 
 def get_nested_dict(config, control, controls, level = 0):
     """Get value of nested dictionary"""
@@ -112,7 +121,7 @@ def internal_control_and_setup(configuration: dict, controls: list, variables: d
 
     return configuration
 
-def control_and_setup(configuration: any, controls: list, variables: dict = None, functions: dict = None):
+def control_and_setup(configuration: any, controls: list, variables: dict = None, functions: dict = None, to_object: bool = False):
     """Apply controls on configuration and setup variables"""
 
     controls = copy.deepcopy(controls)
@@ -130,4 +139,9 @@ def control_and_setup(configuration: any, controls: list, variables: dict = None
     for current_control in controls:
         internal_control_and_setup(current_control, control_of_control, {}, {})
 
-    return internal_control_and_setup(configuration, controls, variables, functions)
+    configuration = internal_control_and_setup(configuration, controls, variables, functions)
+
+    if to_object:
+        configuration = json.loads(json.dumps(configuration), object_hook=ConfigurationObject)
+
+    return configuration
