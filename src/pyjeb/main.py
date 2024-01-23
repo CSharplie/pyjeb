@@ -6,27 +6,32 @@ from pyjeb.variables import set_variable_value
 from pyjeb.exception import InvalidParameterException
 
 
-def get_nested_dict(nested_dict, keys, controls, level):
+def get_nested_dict(config, control, controls, level = 0):
     """Get value of nested dictionary"""
+    levels = control["name"].split(".")
 
-    if isinstance(nested_dict, dict):
-        if keys[0] in nested_dict.keys():
-            return get_nested_dict(nested_dict[keys[0]], keys[1:], controls, level)
-    elif isinstance(nested_dict, list):
-        if len(keys) == 0:
-            return nested_dict
+    if isinstance(config, dict):
+        level_name = levels[level]
+        if level_name in config.keys():
+            r = get_nested_dict(config[level_name], control, controls, level + 1)
+            return r
+        return None
+    if isinstance(config, list):
+        parent_level_name = ".".join(levels[0:level])
+        level_controls = []
+        for current_control in controls:
+            if current_control["name"].startswith(f"{parent_level_name}."):
+                level_control = copy.deepcopy(current_control)
+                level_control["name"] = level_control["name"].replace(f"{parent_level_name}.", "")
+                level_controls.append(level_control)
 
-        level_controls = next((x for x in controls if x["name"] == level), "default")
-        level_controls["name"] = keys[0]
-
-        for list_item in nested_dict:
-            internal_control_and_setup(list_item, [level_controls], {}, {})
+        for item in config:
+            internal_control_and_setup(item, level_controls, {}, {})
 
         return "__is_list__"
-    else:
-        return nested_dict
 
-    return None
+    return config
+
 
 def set_nested_dict(nested_dict, keys, new_value):
     """Set value of nested dictionary"""
@@ -43,6 +48,8 @@ def set_nested_dict(nested_dict, keys, new_value):
 
 def internal_control_and_setup(configuration: dict, controls: list, variables: dict, functions: dict):
     """Apply controls on configuration and setup variables"""
+
+    controls = copy.deepcopy(controls)
 
     for item in controls:
         if "nocheck" in item.keys() and item["nocheck"] is True:
@@ -61,7 +68,7 @@ def internal_control_and_setup(configuration: dict, controls: list, variables: d
 
         if is_nested:
             levels = item_name.split(".")
-            item_value = get_nested_dict(configuration, levels, controls, item_name)
+            item_value = get_nested_dict(configuration, item, controls)
             if item_value == "__is_list__":
                 continue
 

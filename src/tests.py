@@ -78,6 +78,13 @@ controls_nested = [
     { "name": "vehicles.cars.buy_date" }
 ]
 
+controls_deep_array = [
+    { "name": "workspaces.name", "type": "string" },
+    { "name": "workspaces.sources", "type": "list" },
+    { "name": "workspaces.sources.hidden", "type": "boolean", "default": False },
+    { "name": "workspaces.sources.name", "type": "string"},
+    { "name": "workspaces.sources.files", "type": "list"},
+]
 
 def tests_variable_setup():
     """Test set_variable_value function. Ensure the sys/var/func is assigned"""
@@ -291,3 +298,58 @@ def test_nested_configuration_file_exceptions():
     assert str(exc_validset.value) == "Property 'color' ('red', 'blue') has invalid value 'yellow'"
     assert str(exc_empty.value) == "Property 'buy_date' can't be empty"
     assert str(exc_type.value) == "Property 'is_broken' (boolean) has invalid value 'ok'"
+
+def test_deep_array_configuration_file_success():
+    """Test array inside array with correct sample"""
+
+    config_success = control_and_setup({
+        "workspaces": [
+            {
+                "name": "Workspace 1",
+                "sources": [
+                    { "name": "test 1", "files": ["file 1", "file 2"] }
+                ]
+            },
+            {
+                "name": "Workspace 2",
+                "sources": [
+                    { "name": "test 2", "files": ["file 3", "file 4"], "hidden": True },
+                    { "name": "test 3", "files": ["file 5", "file 6"] }
+                ]
+            }
+        ]
+    }, controls_deep_array)
+
+    assert config_success["workspaces"][0]["sources"][0]["hidden"] is False
+    assert config_success["workspaces"][1]["sources"][0]["hidden"] is True
+
+
+def test_deep_array_configuration_file_exceptions():
+    """Test array inside array with incorrect sample"""
+
+    with pytest.raises(InvalidParameterException) as exc_empty_level_1:
+        control_and_setup({
+            "workspaces": [{
+                "sources": [{ "name": "test 1", "files": ["file 1", "file 2"] }]
+            }]
+        }, controls_deep_array)
+
+    with pytest.raises(InvalidParameterException) as exc_empty_level_2:
+        control_and_setup({
+            "workspaces": [{
+                "name": "workspace 1",
+                "sources": [{ "name": "test 1" }]
+            }]
+        }, controls_deep_array)
+
+    with pytest.raises(InvalidParameterException) as exc_type:
+        control_and_setup({
+            "workspaces": [{
+                "name": "workspace 1",
+                "sources": [{ "name": "test 1", "files": ["file 1", "file 2"], "hidden": "yes" }]
+            }]
+        }, controls_deep_array)
+
+    assert str(exc_empty_level_1.value) == "Property 'name' can't be empty"
+    assert str(exc_empty_level_2.value) == "Property 'files' can't be empty"
+    assert str(exc_type.value) == "Property 'hidden' (boolean) has invalid value 'yes'"
