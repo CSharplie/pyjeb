@@ -29,6 +29,7 @@ def get_controls_of_controls():
         {
             "name": "type",
             "default" : "string",
+            "type": "string",
             "validset" : ["string", "integer", "decimal", "boolean", "list", "dict"]
         },
     ]
