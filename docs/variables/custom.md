@@ -8,12 +8,12 @@ import yaml
 from pyjeb import control_and_setup
 
 # setup control
-controls = yaml.safe_load("""
-- name: "favorite_color"
-- name: "least_liked_color"
-""")
+controls = [
+    { "name": "favorite_color" },
+    { "name": "least_liked_color" }
+]
 
-# setup configuration
+# setup configuration with yaml format
 configuration = yaml.safe_load("""
     favorite_color: "$var.first_color"
     least_liked_color: "$var.second_color"
@@ -26,11 +26,11 @@ custom_variables = {
 }
 
 # apply the control and instantiate variables
-configuration = control_and_setup(configuration, controls, variables=custom_variables)
+configuration = control_and_setup(configuration, controls, variables=custom_variables, to_object=True)
 
 # display values 
-print(f"favorite_color = '{configuration['favorite_color']}'")
-print(f"least_liked_color = '{configuration['least_liked_color']}'")
+print(f"favorite_color = '{configuration.favorite_color}'")
+print(f"least_liked_color = '{configuration.least_liked_color}'")
 ```
 
 _Output of the script_
@@ -52,12 +52,12 @@ import yaml
 from pyjeb import control_and_setup
 
 # setup control
-controls = yaml.safe_load("""
-- name: "favorite_color"
-- name: "least_liked_color"
-""")
+controls = [
+    { "name": "favorite_color" },
+    { "name": "least_liked_color" }
+]
 
-# setup configuration
+# setup configuration with yaml format
 configuration = yaml.safe_load("""
     favorite_color: "$func.uppercase('Red')"
     least_liked_color: "$func.lowercase('Blue')"
@@ -73,11 +73,11 @@ custom_functions = {
 }
 
 # apply the control and instantiate variables
-configuration = control_and_setup(configuration, controls, functions=custom_functions)
+configuration = control_and_setup(configuration, controls, functions=custom_functions, to_object=True)
 
 # display values 
-print(f"favorite_color = '{configuration['favorite_color']}'")
-print(f"least_liked_color = '{configuration['least_liked_color']}'")
+print(f"favorite_color = '{configuration.favorite_color}'")
+print(f"least_liked_color = '{configuration.least_liked_color}'")
 ```
 
 _Output of the script_

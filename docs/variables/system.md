@@ -11,8 +11,8 @@
 |-----------------------------|:--------:|------------|------------:|
 | $sys.timestamp('\<format>') | 20231218 | Format     | Return the current timestamp with format provided. See below allowed formats
 
-
 # Date format
+
 | PyJeb Format | Python format | Description            |
 |--------------|:-------------:|------------------------|
 | YYYY         |       %Y      | Year (exemple: 2023)   |
