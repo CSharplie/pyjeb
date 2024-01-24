@@ -4,7 +4,7 @@ from datetime import datetime
 import pytest
 from pyjeb.main import control_and_setup, set_variable_value
 from pyjeb.controls import check_regex, check_type, check_validset, check_empty, cast_to_type
-from pyjeb.exception import InvalidParameterException
+from pyjeb.exception import InvalidTypeParameterException, InvalidValueParameterException, NotProvidedParameterException
 
 variables = {
     "first_color": "red",
@@ -25,6 +25,10 @@ controls = [
         "name": "pattern",
         "type": "string",
         "default" : "*",
+    },
+    {
+        "name": "colors",
+        "type": "dict",
     },
     {
         "name": "colors.cold",
@@ -79,6 +83,7 @@ controls_nested = [
 ]
 
 controls_deep_array = [
+    { "name": "workspaces", "type": "dict" },
     { "name": "workspaces.name", "type": "string" },
     { "name": "workspaces.sources", "type": "list" },
     { "name": "workspaces.sources.hidden", "type": "boolean", "default": False },
@@ -195,16 +200,17 @@ def test_configuration_file_success():
     """Test test_configuration_file_success with correct sample"""
 
     configuration = {
-        "path": "/root/$var.first_color",
-        "colors": { "cold": "blue" },
-        "count": 10,
-        "active": False, 
-        "options": {
+        "Path": "/root/$var.first_color",
+        "Colors": { "cold": "blue" },
+        "Count": 10,
+        "Active": False, 
+        "Options": {
             "ignore": [
                 "test 1",
                 "test 2"
             ]
-        }
+        },
+        "useless": "cat"
     }
 
     config_success = control_and_setup(configuration, controls, variables, functions)
@@ -229,30 +235,30 @@ def test_configuration_file_success():
 def test_configuration_file_exceptions():
     """Test test_configuration_file_success with incorrect sample"""
 
-    with pytest.raises(InvalidParameterException) as exc_validset:
+    with pytest.raises(InvalidValueParameterException) as exc_validset:
         control_and_setup({ "path": "/root/$var.first_color", "colors": { "cold": "yellow" } }, controls, variables, functions)
 
-    with pytest.raises(InvalidParameterException) as exc_empty:
+    with pytest.raises(NotProvidedParameterException) as exc_empty:
         control_and_setup({ "path": "/root/$var.first_color", "colors": { "hot": "red" } }, controls, variables, functions)
 
-    with pytest.raises(InvalidParameterException) as exc_regex:
+    with pytest.raises(InvalidValueParameterException) as exc_regex:
         control_and_setup({ "path": "/root/$var.first_color", "colors": { "cold": "blue" }, "phone": "Back & Yellow" }, controls, variables, functions)
 
-    with pytest.raises(InvalidParameterException) as exc_type_int:
+    with pytest.raises(InvalidTypeParameterException) as exc_type_int:
         control_and_setup({ "path": "/root/$var.first_color", "colors": { "cold": "blue" }, "count": True }, controls, variables, functions)
 
-    with pytest.raises(InvalidParameterException) as exc_type_bool:
+    with pytest.raises(InvalidTypeParameterException) as exc_type_bool:
         control_and_setup({ "path": "/root/$var.first_color", "colors": { "cold": "blue" }, "active": 10.5 }, controls, variables, functions)
 
-    with pytest.raises(InvalidParameterException) as exc_type_decimal:
+    with pytest.raises(InvalidTypeParameterException) as exc_type_decimal:
         control_and_setup({ "path": "/root/$var.first_color", "colors": { "cold": "blue" }, "threshold": True }, controls, variables, functions)
 
     assert str(exc_validset.value) == "Property 'colors.cold' ('blue', 'green') has invalid value 'yellow'"
-    assert str(exc_empty.value) == "Property 'colors.cold' can't be empty"
+    assert str(exc_empty.value) == "The property 'colors.cold' is not setup and have no default value"
     assert str(exc_regex.value) == "Property 'phone' ([+]33[67]\\d{8}) has invalid value 'Back & Yellow'"
-    assert str(exc_type_int.value) == "Property 'count' (integer) has invalid value 'True'"
-    assert str(exc_type_bool.value) == "Property 'active' (boolean) has invalid value '10.5'"
-    assert str(exc_type_decimal.value) == "Property 'threshold' (decimal) has invalid value 'True'"
+    assert str(exc_type_int.value) == "Property 'count' has invalid value 'True' (type must be integer)"
+    assert str(exc_type_bool.value) == "Property 'active' has invalid value '10.5' (type must be boolean)"
+    assert str(exc_type_decimal.value) == "Property 'threshold' has invalid value 'True' (type must be decimal)"
 
 
 def test_nested_configuration_file_success():
@@ -279,7 +285,7 @@ def test_nested_configuration_file_success():
 def test_nested_configuration_file_exceptions():
     """Test test_configuration_file_success with incorrect sample"""
 
-    with pytest.raises(InvalidParameterException) as exc_type:
+    with pytest.raises(InvalidTypeParameterException) as exc_type:
         control_and_setup({
             "vehicles": {
                 "cars": [
@@ -289,7 +295,7 @@ def test_nested_configuration_file_exceptions():
             }
         }, controls_nested)
 
-    with pytest.raises(InvalidParameterException) as exc_validset:
+    with pytest.raises(InvalidValueParameterException) as exc_validset:
         control_and_setup({
             "vehicles": {
                 "cars": [
@@ -299,7 +305,7 @@ def test_nested_configuration_file_exceptions():
             }
         }, controls_nested)
 
-    with pytest.raises(InvalidParameterException) as exc_empty:
+    with pytest.raises(NotProvidedParameterException) as exc_empty:
         control_and_setup({
             "vehicles": {
                 "cars": [
@@ -310,9 +316,9 @@ def test_nested_configuration_file_exceptions():
         }, controls_nested)
 
 
-    assert str(exc_validset.value) == "Property 'color' ('red', 'blue') has invalid value 'yellow'"
-    assert str(exc_empty.value) == "Property 'buy_date' can't be empty"
-    assert str(exc_type.value) == "Property 'is_broken' (boolean) has invalid value 'ok'"
+    assert str(exc_validset.value) == "Property 'vehicles.cars.color' ('red', 'blue') has invalid value 'yellow'"
+    assert str(exc_empty.value) == "The property 'vehicles.cars.buy_date' is not setup and have no default value"
+    assert str(exc_type.value) == "Property 'vehicles.cars.is_broken' has invalid value 'ok' (type must be boolean)"
 
 def test_deep_array_configuration_file_success():
     """Test array inside array with correct sample"""
@@ -347,14 +353,14 @@ def test_deep_array_configuration_file_success():
 def test_deep_array_configuration_file_exceptions():
     """Test array inside array with incorrect sample"""
 
-    with pytest.raises(InvalidParameterException) as exc_empty_level_1:
+    with pytest.raises(NotProvidedParameterException) as exc_empty_level_1:
         control_and_setup({
             "workspaces": [{
                 "sources": [{ "name": "test 1", "files": ["file 1", "file 2"] }]
             }]
         }, controls_deep_array)
 
-    with pytest.raises(InvalidParameterException) as exc_empty_level_2:
+    with pytest.raises(NotProvidedParameterException) as exc_empty_level_2:
         control_and_setup({
             "workspaces": [{
                 "name": "workspace 1",
@@ -362,7 +368,7 @@ def test_deep_array_configuration_file_exceptions():
             }]
         }, controls_deep_array)
 
-    with pytest.raises(InvalidParameterException) as exc_type:
+    with pytest.raises(InvalidTypeParameterException) as exc_type:
         control_and_setup({
             "workspaces": [{
                 "name": "workspace 1",
@@ -370,6 +376,6 @@ def test_deep_array_configuration_file_exceptions():
             }]
         }, controls_deep_array)
 
-    assert str(exc_empty_level_1.value) == "Property 'name' can't be empty"
-    assert str(exc_empty_level_2.value) == "Property 'files' can't be empty"
-    assert str(exc_type.value) == "Property 'hidden' (boolean) has invalid value 'yes'"
+    assert str(exc_empty_level_1.value) == "The property 'workspaces.name' is not setup and have no default value"
+    assert str(exc_empty_level_2.value) == "The property 'workspaces.sources.files' is not setup and have no default value"
+    assert str(exc_type.value) == "Property 'workspaces.sources.hidden' has invalid value 'yes' (type must be boolean)"

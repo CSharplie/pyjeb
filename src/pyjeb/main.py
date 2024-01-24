@@ -6,7 +6,8 @@ import json
 
 from pyjeb.controls import cast_to_type, check_type, get_controls_of_controls, check_empty, check_validset, check_regex
 from pyjeb.variables import set_variable_value
-from pyjeb.exception import InvalidParameterException
+from pyjeb.exception import EmptyParameterException, InvalidTypeParameterException, InvalidValueParameterException, NotProvidedParameterException
+
 
 @dataclasses.dataclass
 class ConfigurationObject:
@@ -15,109 +16,109 @@ class ConfigurationObject:
     def __init__(self, obj):
         self.__dict__.update(obj)
 
-def get_nested_dict(config, control, controls, level = 0):
+
+def internal_control_and_setup(configuration, control, variables, functions, previous = None, target_control = None):
     """Get value of nested dictionary"""
-    levels = control["name"].split(".")
 
-    if isinstance(config, dict):
-        level_name = levels[level]
-        if level_name in config.keys():
-            r = get_nested_dict(config[level_name], control, controls, level + 1)
-            return r
-        return None
-    if isinstance(config, list):
-        parent_level_name = ".".join(levels[0:level])
-        level_controls = []
-        for current_control in controls:
-            if current_control["name"].startswith(f"{parent_level_name}."):
-                level_control = copy.deepcopy(current_control)
-                level_control["name"] = level_control["name"].replace(f"{parent_level_name}.", "")
-                level_controls.append(level_control)
+    if previous is None:
+        previous = []
 
-        for item in config:
-            internal_control_and_setup(item, level_controls, {}, {})
+    # apply remaping, default values and variable setup for each dict objects
+    if isinstance(configuration, dict):
+        return internal_control_and_setup_dict(configuration, control, variables, functions, previous, target_control)
 
-        return "__is_list__"
+    # apply the logic for each item in a list exept for scalar listes
+    if isinstance(configuration, list) and not all(isinstance(n, (str, int, bool, float)) for n in configuration):
+        return internal_control_and_setup_list(configuration, control, variables, functions, previous, target_control)
 
-    return config
+    # skip controls if disabled
+    if "nocheck" in target_control.keys() and target_control["nocheck"] is True:
+        return configuration
+
+    # apply controls on scalars values
+    return internal_control_and_setup_scalar(configuration, variables, functions, target_control)
 
 
-def set_nested_dict(nested_dict, keys, new_value):
-    """Set value of nested dictionary"""
+def internal_control_and_setup_dict(configuration, control, variables, functions, previous = None, target_control = None):
+    """Apply remaping, default values and variable setup for each dict objects"""
 
-    if new_value == "__is_list__":
-        return
-
-    if len(keys) == 1:
-        nested_dict[keys[0]] = new_value
+    if previous == []:
+        scope_controls = list(filter(lambda f: "." not in f["name"], control))
     else:
-        key = keys[0]
-        if key in nested_dict:
-            set_nested_dict(nested_dict[key], keys[1:], new_value)
+        sibling_name = ".".join(previous).upper()
+        scope_controls = list(filter(lambda f: f["name"].upper().startswith(f"{sibling_name}.") and f["name"].count(".") == sibling_name.count(".") + 1, control))
 
-def internal_control_and_setup(configuration: dict, controls: list, variables: dict, functions: dict):
-    """Apply controls on configuration and setup variables"""
+    for current_control in scope_controls:
+        current_full_name = current_control["name"]
+        current_name = current_full_name.split(".")[-1]
 
-    controls = copy.deepcopy(controls)
-
-    for item in controls:
-        if "nocheck" in item.keys() and item["nocheck"] is True:
+        if "nocheck" in current_control.keys() and current_control["nocheck"] is True:
             continue
 
-        default_defined = "default" in item
-        default_value = item["default"] if default_defined else None
+        # check if all target keys are setup and setup default values
+        if current_name.upper() not in [item.upper() for item in configuration.keys()]:
+            if "default" not in current_control.keys():
+                raise NotProvidedParameterException(f"The property '{current_full_name}' is not setup and have no default value")
+            configuration[current_name] = current_control["default"]
 
-        item_name = item["name"]
-        is_nested = "." in item_name
+    # find all key to rename with correct case
+    remap_matrix = []
+    for key in configuration.keys():
+        current_previous = copy.deepcopy(previous)
+        current_previous.append(key)
 
-        # get value from configuration node
-        item_value = None
-        if not is_nested and item_name in configuration.keys():
-            item_value = configuration[item_name]
+        # pylint: disable=W0640
+        target_control = list(filter(lambda f: f["name"].upper() == ".".join(current_previous).upper(), control))
+        if len(target_control) == 0:
+            continue
 
-        if is_nested:
-            levels = item_name.split(".")
-            item_value = get_nested_dict(configuration, item, controls)
-            if item_value == "__is_list__":
-                continue
+        target_control = target_control[0]
+        target_name = target_control["name"].split(".")[-1]
+        remap_matrix.append({ "source": key, "target": target_name })
 
-        # check empty
-        if not check_empty(item_value, default_defined):
-            raise InvalidParameterException(f"Property '{item_name}' can't be empty")
+        configuration[key] = internal_control_and_setup(configuration[key], control, variables, functions, current_previous, target_control)
 
-        # setup default value
-        if item_value is None and not is_nested:
-            configuration[item_name] = default_value
-            item_value = default_value
+    # rename source name to expected target case
+    for item in remap_matrix:
+        configuration[item["target"]] = configuration.pop(item["source"])
 
-        elif item_value is None and is_nested:
-            set_nested_dict(configuration, levels, default_value)
-            item_value = default_value
+    return configuration
 
-        # setup variables values
-        item_value = set_variable_value(item_value, variables, functions)
 
-        # check type and recast
-        if item_value is not None and "type" in(item) and item["type"] is not None:
-            if check_type(item_value, item["type"]):
-                item_value = cast_to_type(item_value, item["type"])
-            else:
-                raise InvalidParameterException(f"Property '{item_name}' ({item['type']}) has invalid value '{item_value}'")
+def internal_control_and_setup_list(configuration, control, variables, functions, previous = None, target_control = None):
+    """Apply the logic for each item in a list exept for scalar listes"""
+    for i, current_configuration in enumerate(configuration):
+        configuration[i] = internal_control_and_setup(current_configuration, control, variables, functions, previous, target_control)
+    return configuration
 
-        # check validset value
-        if "validset" in(item) and item["validset"] is not None and not check_validset(item_value, item["validset"]):
-            allowed_values = "', '".join(item["validset"])
-            raise InvalidParameterException(f"Property '{item_name}' ('{allowed_values}') has invalid value '{item_value}'")
+def internal_control_and_setup_scalar(configuration, variables, functions, target_control = None):
+    """Apply controls on scalars values"""
 
-        # check regex value
-        if "regex" in(item) and item["regex"] is not None and not check_regex(item_value, item["regex"]):
-            raise InvalidParameterException(f"Property '{item_name}' ({item['regex']}) has invalid value '{item_value}'")
+    full_name = target_control["name"]
+    have_default = "default" in target_control.keys()
 
-        # apply new value on configuration
-        if not is_nested:
-            configuration[item_name] = item_value
+    # control empty value
+    if not check_empty(configuration, have_default):
+        raise EmptyParameterException(f"Property '{full_name}' can't be empty")
+
+    # setup variables values
+    configuration = set_variable_value(configuration, variables, functions)
+
+    # check type and recast
+    if configuration is not None:
+        if check_type(configuration, target_control["type"]):
+            configuration = cast_to_type(configuration, target_control["type"])
         else:
-            set_nested_dict(configuration, levels, item_value)
+            raise InvalidTypeParameterException(f"Property '{full_name}' has invalid value '{configuration}' (type must be {target_control['type']})")
+
+    # check validset value
+    if "validset" in(target_control.keys()) and target_control["validset"] is not None and not check_validset(configuration, target_control["validset"]):
+        allowed_values = "', '".join(target_control["validset"])
+        raise InvalidValueParameterException(f"Property '{full_name}' ('{allowed_values}') has invalid value '{configuration}'")
+
+    # check regex value
+    if "regex" in(target_control.keys()) and target_control["regex"] is not None and not check_regex(configuration, target_control["regex"]):
+        raise InvalidValueParameterException(f"Property '{full_name}' ({target_control['regex']}) has invalid value '{configuration}'")
 
     return configuration
 
@@ -125,9 +126,6 @@ def control_and_setup(configuration: any, controls: list, variables: dict = None
     """Apply controls on configuration and setup variables"""
 
     controls = copy.deepcopy(controls)
-
-    if controls is None:
-        controls = []
 
     if variables is None:
         variables = {}
