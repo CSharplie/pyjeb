@@ -2,7 +2,7 @@ name: 'Release on PyPi (Test)'
 on:
   push:
     branches:
-    - main
+    - develop
     paths:
     - src/**
   workflow_dispatch:
@@ -21,9 +21,9 @@ jobs:
         pip install -U pytest==7.1.3
         pip install -U pylint==3.0.3
     - name: Execute tests
-      run: pytest -rx .\tests\ --verbose
+      run: pytest -rx ./tests --verbose
     - name: Execute linter
-      run: pylint *
+      run: pylint src/*
   publish:
     needs: [local-tests]
     name: 'Publish on PyPi'
