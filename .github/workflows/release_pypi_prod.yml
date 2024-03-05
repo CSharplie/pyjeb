@@ -23,7 +23,7 @@ jobs:
     - name: Execute tests
       run: pytest -rx ./tests --verbose
     - name: Execute linter
-      run: pylint *
+      run: pylint src/*
   publish:
     needs: [local-tests]
     name: 'Publish on PyPi'
