@@ -2,7 +2,7 @@ name: 'Release on PyPi (Test)'
 on:
   push:
     branches:
-    - main
+    - develop
     paths:
     - src/**
   workflow_dispatch:
