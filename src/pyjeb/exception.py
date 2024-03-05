@@ -15,5 +15,8 @@ class InvalidTypeParameterException(InvalidParameterException):
 class InvalidValueParameterException(InvalidParameterException):
     """A parameter value is correct"""
 
+class InvalidControlException(Exception):
+    """Invalid control exception"""
+
 class CustomFunctionException(Exception):
     """Custom parameter exception"""

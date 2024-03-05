@@ -5,6 +5,7 @@ import dataclasses
 import json
 
 from pyjeb.controls import cast_to_type, check_type, get_controls_of_controls, check_empty, check_validset, check_regex
+from pyjeb.expression import apply_expression
 from pyjeb.variables import set_variable_value
 from pyjeb.exception import EmptyParameterException, InvalidTypeParameterException, InvalidValueParameterException, NotProvidedParameterException
 
@@ -17,7 +18,7 @@ class ConfigurationObject:
         self.__dict__.update(obj)
 
 
-def internal_control_and_setup(configuration, control, variables, functions, previous = None, target_control = None):
+def internal_control_and_setup(configuration, control, variables, functions, previous = None, parent = None, target_control = None):
     """Get value of nested dictionary"""
 
     if previous is None:
@@ -35,9 +36,11 @@ def internal_control_and_setup(configuration, control, variables, functions, pre
     if "nocheck" in target_control.keys() and target_control["nocheck"] is True:
         return configuration
 
-    # apply controls on scalars values
-    return internal_control_and_setup_scalar(configuration, variables, functions, target_control)
-
+    # apply controls on scalars values and process expressions
+    value = configuration
+    for expression in target_control["expressions"]:
+        value = apply_expression(value, expression, parent)
+    return internal_control_and_setup_scalar(value, variables, functions, target_control)
 
 def internal_control_and_setup_dict(configuration, control, variables, functions, previous = None, target_control = None):
     """Apply remaping, default values and variable setup for each dict objects"""
@@ -76,7 +79,7 @@ def internal_control_and_setup_dict(configuration, control, variables, functions
         target_name = target_control["name"].split(".")[-1]
         remap_matrix.append({ "source": key, "target": target_name })
 
-        configuration[key] = internal_control_and_setup(configuration[key], control, variables, functions, current_previous, target_control)
+        configuration[key] = internal_control_and_setup(configuration[key], control, variables, functions, current_previous, configuration, target_control)
 
     # rename source name to expected target case
     for item in remap_matrix:
@@ -88,7 +91,7 @@ def internal_control_and_setup_dict(configuration, control, variables, functions
 def internal_control_and_setup_list(configuration, control, variables, functions, previous = None, target_control = None):
     """Apply the logic for each item in a list exept for scalar listes"""
     for i, current_configuration in enumerate(configuration):
-        configuration[i] = internal_control_and_setup(current_configuration, control, variables, functions, previous, target_control)
+        configuration[i] = internal_control_and_setup(current_configuration, control, variables, functions, previous, configuration, target_control)
     return configuration
 
 def internal_control_and_setup_scalar(configuration, variables, functions, target_control = None):
