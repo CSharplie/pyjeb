@@ -9,28 +9,39 @@ def get_controls_of_controls():
     return [
         {
             "name": "name",
-            "type": "string"
+            "type": "string",
+            "expressions": [],
         },
         {
             "name": "default",
             "type": "string",
             "nocheck" : True,
+            "expressions": [],
         },
         {
             "name": "validset",
             "type": "list",
             "default" : None,
+            "expressions": [],
         },
         {
             "name": "regex",
             "type": "string",
             "default" : None,
+            "expressions": [],
         },
         {
             "name": "type",
             "default" : "string",
             "type": "string",
-            "validset" : ["string", "integer", "decimal", "boolean", "list", "dict"]
+            "validset" : ["string", "integer", "decimal", "boolean", "list", "dict"],
+            "expressions": [],
+        },
+        {
+            "name": "expressions",
+            "type": "list",
+            "default" : [],
+            "expressions": [],
         },
     ]
 
