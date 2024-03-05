@@ -1,0 +1,48 @@
+name: 'Release on PyPi (Test)'
+on:
+  push:
+    branches:
+    - main
+    paths:
+    - src/**
+  workflow_dispatch:
+jobs:
+  local-tests:
+    name: 'Execute tests locally'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Install requirements
+      run: | 
+        pip install -U pytest==7.1.3
+        pip install -U pylint==3.0.3
+    - name: Execute tests
+      run: pytest -rx .\tests\ --verbose
+    - name: Execute linter
+      run: pylint *
+  publish:
+    needs: [local-tests]
+    name: 'Publish on PyPi'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: src/
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Install requirements
+      run: | 
+        pip install wheel==0.42.0
+        pip install twine==4.0.2
+        pip install setuptools==65.5.0
+    - name: Build package
+      run: python setup.py sdist bdist_wheel
+    - name: Check package
+      run: twine check dist/*
+    - name: Publish
+      run: twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u ${{ secrets.PYPI_TEST_USER }} -p '${{ secrets.PYPI_TEST_PASSWORD }}'
