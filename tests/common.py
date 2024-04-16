@@ -69,7 +69,7 @@ controls = [
 controls_nested = [
     { "name": "vehicles", "type": "dict" },
     { "name": "vehicles.cars", "type": "list" },
-    { "name": "vehicles.cars.color", "validset": ["red", "blue"] },
+    { "name": "vehicles.cars.color", "validset": ["red", "blue", r"^#(?:[0-9a-fA-F]{3}){1,2}$"] },
     { "name": "vehicles.cars.is_broken", "type": "boolean", "default": False },
     { "name": "vehicles.cars.buy_date" },
     { "name": "vehicles.cars.type", "default": "usual", "expressions": ["if color == 'red' return 'sportive'"] }

@@ -65,7 +65,7 @@ def test_configuration_nested_exceptions():
         }, controls_nested)
 
 
-    assert str(exc_validset.value) == "Property 'vehicles.cars.color' ('red', 'blue') has invalid value 'yellow'"
+    assert str(exc_validset.value) == r"Property 'vehicles.cars.color' ('red', 'blue', '^#(?:[0-9a-fA-F]{3}){1,2}$') has invalid value 'yellow'"
     assert str(exc_empty.value) == "The property 'vehicles.cars.buy_date' is not setup and have no default value"
     assert str(exc_type.value) == "Property 'vehicles.cars.is_broken' has invalid value 'ok' (type must be boolean)"
 
