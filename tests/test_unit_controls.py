@@ -17,11 +17,18 @@ def test_validset_control():
 
     allowed_colors = ["red", "blue", "yellow"]
 
+    # static values
     assert check_validset("blue", allowed_colors) is True
     assert check_validset("yellow", allowed_colors) is True
     assert check_validset("red", allowed_colors) is True
     assert check_validset("orange", allowed_colors) is False
     assert check_validset("green", allowed_colors) is False
+
+    #regex values
+    assert check_validset("red", ["orange", "^r"]) is True
+    assert check_validset("orange", ["red", "^r"]) is False
+    assert check_validset("red", [".*d$"]) is True
+    assert check_validset("orange", [".*d$"]) is False
 
 def test_empty_control():
     """Test check_empty function. Ensure empty control is working"""

@@ -53,7 +53,16 @@ def check_empty(value, default_defined):
 def check_validset(value, validset):
     """Check if property is include in validset"""
 
-    return value in validset
+    if value in validset:
+        return True
+
+    for regex in validset:
+        try:
+            if re.match(regex, value):
+                return True
+        except re.error:
+            continue
+    return False
 
 def check_regex(value, expression):
     """Check if property match with regex"""
