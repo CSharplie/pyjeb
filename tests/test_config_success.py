@@ -45,7 +45,8 @@ def test_configuration_nested_success():
         "vehicles": {
             "cars": [
                 { "color": "red", "buy_date": "2022-05-24" },
-                { "color": "blue", "is_broken": True, "buy_date": "$sys.timestamp('YYYY-MM-DD')" }
+                { "color": "blue", "is_broken": True, "buy_date": "$sys.timestamp('YYYY-MM-DD')" },
+                { "color": "#FFFFFF", "buy_date": "2024-06-16" },
             ]
         }
     }
