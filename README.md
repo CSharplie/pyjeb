@@ -14,7 +14,7 @@ The main features of pyjeb are:
 1. Install PyJeb package
 2. Setup [control file](https://github.com/CSharplie/pyjeb/wiki/controls-configuration)
 3. Setup configuration file
-4. Call [control_and_setup](https://github.com/CSharplie/pyjeb/wiki/setup_and_control) function
+4. Call [control_and_setup](https://github.com/CSharplie/pyjeb/wiki/control_and_setup) function
 
 ## Install PyJeb
 Install from [PyPi](https://pypi.org/project/pyjeb/) package manager:
@@ -114,11 +114,11 @@ source.pattern = '*'
 target.path = '/Bronze/HR/Payroll'
 ```
 
-# setup_and_control function
+# control_and_setup function
 
 The function __control_and_setup__ is the only one to use in PyJeb. It use to apply controls and setup default and variables values.
 
-See all about the structure in [control_and_setup](https://github.com/CSharplie/pyjeb/wiki/control-and-setup)
+See all about the structure in [control_and_setup](https://github.com/CSharplie/pyjeb/wiki/control_and_setup)
 
 # Configuration
 The configuration is a dictionary of dictionaries. Each key is a section and each section is a dictionary of key-value pairs.
