@@ -11,7 +11,7 @@ long_description = long_description.replace("(/", "(https://github.com/CSharplie
 
 setup (
     name = "pyjeb",
-    version = "1.0.3",
+    version = "1.0.4",
     description="A powerfull lightweight library to check and variabilize your configuration files",
     long_description=long_description,
     long_description_content_type="text/markdown",
