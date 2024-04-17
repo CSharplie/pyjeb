@@ -81,7 +81,7 @@ def check_type(value, value_type):
         case "boolean":
             check_result = isinstance(value, bool) or str(value).lower() in ["true", "false"]
         case "list":
-            check_result = isinstance(value, list)
+            check_result = True
         case "dict":
             check_result = isinstance(value, dict)
         case "string":
@@ -100,7 +100,10 @@ def cast_to_type(value, value_type):
         case "boolean":
             output_value =  str(value).lower() == "true"
         case "list":
-            output_value =  value
+            if isinstance(value, list):
+                output_value =  value
+            else:
+                output_value =  [value]
         case "dict":
             output_value =  value
         case "string":

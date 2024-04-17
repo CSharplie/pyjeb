@@ -50,21 +50,21 @@ def test_type_control():
     """Test type_control function. Ensure type control is working"""
 
     test_matrice = [
-            { "value": "ABC"            , "types": { "integer":False, "decimal":False   , "boolean":False   , "list":False  , "dict":False  , "string": True }}
-        ,   { "value": -10              , "types": { "integer":True , "decimal":True    , "boolean":False   , "list":False  , "dict":False  , "string": True }}
-        ,   { "value": 10               , "types": { "integer":True , "decimal":True    , "boolean":False   , "list":False  , "dict":False  , "string": True }}
-        ,   { "value": "10"             , "types": { "integer":True , "decimal":True    , "boolean":False   , "list":False  , "dict":False  , "string": True }}
-        ,   { "value": "-10"            , "types": { "integer":True , "decimal":True    , "boolean":False   , "list":False  , "dict":False  , "string": True }}
-        ,   { "value": -10.5            , "types": { "integer":False, "decimal":True    , "boolean":False   , "list":False  , "dict":False  , "string": True }}
-        ,   { "value": 10.5             , "types": { "integer":False, "decimal":True    , "boolean":False   , "list":False  , "dict":False  , "string": True }}
-        ,   { "value": "10.5"           , "types": { "integer":False, "decimal":True    , "boolean":False   , "list":False  , "dict":False  , "string": True }}
-        ,   { "value": "-10.5"          , "types": { "integer":False, "decimal":True    , "boolean":False   , "list":False  , "dict":False  , "string": True }}
-        ,   { "value": True             , "types": { "integer":False, "decimal":False   , "boolean":True    , "list":False  , "dict":False  , "string": True }}
-        ,   { "value": False            , "types": { "integer":False, "decimal":False   , "boolean":True    , "list":False  , "dict":False  , "string": True }}
-        ,   { "value": "True"           , "types": { "integer":False, "decimal":False   , "boolean":True    , "list":False  , "dict":False  , "string": True }}
-        ,   { "value": "False"          , "types": { "integer":False, "decimal":False   , "boolean":True    , "list":False  , "dict":False  , "string": True }}
-        ,   { "value": ["Red", "Blue"]  , "types": { "integer":False, "decimal":False   , "boolean":False   , "list":True   , "dict":False  , "string": False }}
-        ,   { "value": { "Type": "Py"}  , "types": { "integer":False, "decimal":False   , "boolean":False   , "list":False  , "dict":True   , "string": False }}
+            { "value": "ABC"            , "types": { "integer":False, "decimal":False   , "boolean":False   , "list":True  , "dict":False  , "string": True }}
+        ,   { "value": -10              , "types": { "integer":True , "decimal":True    , "boolean":False   , "list":True  , "dict":False  , "string": True }}
+        ,   { "value": 10               , "types": { "integer":True , "decimal":True    , "boolean":False   , "list":True  , "dict":False  , "string": True }}
+        ,   { "value": "10"             , "types": { "integer":True , "decimal":True    , "boolean":False   , "list":True  , "dict":False  , "string": True }}
+        ,   { "value": "-10"            , "types": { "integer":True , "decimal":True    , "boolean":False   , "list":True  , "dict":False  , "string": True }}
+        ,   { "value": -10.5            , "types": { "integer":False, "decimal":True    , "boolean":False   , "list":True  , "dict":False  , "string": True }}
+        ,   { "value": 10.5             , "types": { "integer":False, "decimal":True    , "boolean":False   , "list":True  , "dict":False  , "string": True }}
+        ,   { "value": "10.5"           , "types": { "integer":False, "decimal":True    , "boolean":False   , "list":True  , "dict":False  , "string": True }}
+        ,   { "value": "-10.5"          , "types": { "integer":False, "decimal":True    , "boolean":False   , "list":True  , "dict":False  , "string": True }}
+        ,   { "value": True             , "types": { "integer":False, "decimal":False   , "boolean":True    , "list":True  , "dict":False  , "string": True }}
+        ,   { "value": False            , "types": { "integer":False, "decimal":False   , "boolean":True    , "list":True  , "dict":False  , "string": True }}
+        ,   { "value": "True"           , "types": { "integer":False, "decimal":False   , "boolean":True    , "list":True  , "dict":False  , "string": True }}
+        ,   { "value": "False"          , "types": { "integer":False, "decimal":False   , "boolean":True    , "list":True  , "dict":False  , "string": True }}
+        ,   { "value": ["Red", "Blue"]  , "types": { "integer":False, "decimal":False   , "boolean":False   , "list":True  , "dict":False  , "string": False }}
+        ,   { "value": { "Type": "Py"}  , "types": { "integer":False, "decimal":False   , "boolean":False   , "list":True  , "dict":True   , "string": False }}
     ]
 
     for test in test_matrice:
@@ -105,7 +105,9 @@ def test_cast_to_type():
         # string
         , { "input":"ABC"       , "output":"ABC"    , "type_str":"string"   , "type":str}
         # list
-        , { "input":["Red", "Blue"], "output":["Red", "Blue"], "type_str":"list", "type":list}
+        , { "input":["Red", "Blue"] , "output":["Red", "Blue"]   , "type_str":"list", "type":list}
+        , { "input":"Red"           , "output":["Red"]           , "type_str":"list", "type":list}
+        , { "input":{"Color":"Red"} , "output":[{"Color":"Red"}] , "type_str":"list", "type":list}
         # dict
         , { "input":{ "Type": "Py"}, "output":{ "Type": "Py"}, "type_str":"dict", "type":dict}
     ]
