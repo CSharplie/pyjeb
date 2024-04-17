@@ -12,9 +12,9 @@ The main features of pyjeb are:
 # Get started
 ## Steps
 1. Install PyJeb package
-2. Setup [control file](/docs/config/controls.md)
+2. Setup [control file](https://github.com/CSharplie/pyjeb/wiki/controls-configuration)
 3. Setup configuration file
-4. Call [control_and_setup](#setup_and_control-function) function
+4. Call [control_and_setup](https://github.com/CSharplie/pyjeb/wiki/control_and_setup) function
 
 ## Install PyJeb
 Install from [PyPi](https://pypi.org/project/pyjeb/) package manager:
@@ -96,7 +96,6 @@ for item in configuration:
   print(f"source.path = '{item_configuration.source.path}'")
   print(f"source.pattern = '{item_configuration.source.pattern}'")
   print(f"target.path = '{item_configuration.target.path}'")
-
 ```
 
 _Output of the script_
@@ -115,21 +114,36 @@ source.pattern = '*'
 target.path = '/Bronze/HR/Payroll'
 ```
 
-# setup_and_control function
+# control_and_setup function
 
 The function __control_and_setup__ is the only one to use in PyJeb. It use to apply controls and setup default and variables values.
 
-__Definition:__ control_and_setup(
-    <[configuration](/docs/config/config.md)>,
-    <[controls](/docs/config/controls.md)>,
-    \[<[variables](/docs/variables/custom.md)>],
-    \[<[functions](/docs/variables/custom.md)>]
-)
+See all about the structure in [control_and_setup](https://github.com/CSharplie/pyjeb/wiki/control_and_setup)
 
-| Name          | Mandatory | Type | Description |
-|---------------|:---------:|:----:|:------------|
-| configuration |    yes    | Dict | A dictionary (of scalar or array or dictonnary) who contain the configuration to control and variabilize
-| controls      |    yes    | List | A list of dictionnaries who define the structure of configuration. See all about the structure in [controls page](/docs/config/controls.md)
-| variables     |     no    | Dict | Custom variables accessible by configuration. See all about it in [custom variable page](/docs/variables/custom.md)
-| functions     |     no    | Dict | Custom parametrized variables accessible by configuration. See all about it in [custom variable page](/docs/variables/custom.md)
-| to_object     |     no    | Bool | Transform the output into an object. If false the output keeps dictionary format (default: false)
+# Configuration
+The configuration is a dictionary of dictionaries. Each key is a section and each section is a dictionary of key-value pairs.
+
+__Exemple:__
+``` yaml
+HR - Employees:
+  source:
+    path: "/Landing/HR/Employees/$sys.timestamp('YYYY-MM-DD')"
+    pattern: "*.csv"
+  target:
+    path: "/Bronze/HR/Employees"
+HR - Managers:
+  source:
+    path: "/Landing/HR/Managers/$sys.timestamp('YYYY-MM-DD')"
+  target:
+    path: "/Bronze/HR/Managers"
+HR - Payroll:
+  source:
+    path: "/Landing/HR/Payroll/$sys.timestamp('YYYY-MM-DD')"
+  target:
+    path: "/Bronze/HR/Payroll"
+```
+
+# Controls
+The controls are a list of dictionaries. Each dictionary is a control to apply on the configuration.
+  
+See all about the structure in [controls page](https://github.com/CSharplie/pyjeb/wiki/controls-configuration)
