@@ -2,6 +2,8 @@
 
 import re
 
+from pyjeb.exception import InvalidControlException
+
 # control configuration for control file
 def get_controls_of_controls():
     """Get the structure of control configuration"""
@@ -109,3 +111,21 @@ def cast_to_type(value, value_type):
         case "string":
             output_value =  value
     return output_value
+
+def check_controls_consistency(controls):
+    """Check if provided controls are consistent"""
+    flatten_controls = {control["name"].upper(): control["type"].lower() if "type" in control.keys() else "string" for control in controls}
+
+    for control in controls:
+        control_name = control["name"]
+        if "." in control_name:
+            parent_name = ".".join(control_name.split(".")[:-1])
+
+            # Ensure that parent control is defined
+            if parent_name.upper() not in flatten_controls.keys():
+                raise InvalidControlException(f"The control '{control_name}' have no parent control defined")
+
+            # Ensure that parent control is of type dict or list
+            parent_type = flatten_controls[parent_name.upper()]
+            if parent_type not in ["dict", "list"]:
+                raise InvalidControlException(f"The control '{control_name}' have a parent control with invalid type '{parent_type}' (should be 'dict' or 'list')")
