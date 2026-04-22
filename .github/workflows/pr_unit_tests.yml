@@ -41,7 +41,7 @@ jobs:
             echo "EOF" >> $GITHUB_OUTPUT
           continue-on-error: true
         - name: Output results
-          if: ${{ always() }}
+          if: ${{ steps.tests.outcome == 'failure' }}
           uses: marocchino/sticky-pull-request-comment@v2
           with:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -50,4 +50,7 @@ jobs:
                 ``` bash
                 ${{ steps.tests.outputs.result }}
                 ```
+        - name: Fail if tests failed
+          if: ${{ steps.tests.outcome == 'failure' }}
+          run: exit 1
         
