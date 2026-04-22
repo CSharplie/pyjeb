@@ -1,0 +1,56 @@
+name: 'Execute unit tests'
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'src/**'
+      - 'tests/**'
+  workflow_dispatch:
+permissions:
+    contents: read
+    pull-requests: write
+    issues: write
+jobs:
+    tests:
+        name: 'Execute unit tests'
+        runs-on: ubuntu-22.04
+        defaults:
+          run:
+            shell: bash
+        steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+        - name: Set up Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: "3.12.8"
+        - name: Install requirements
+          run: | 
+            pip install pytest==8.3.3
+        - name: Execute tests
+          id: tests
+          run: | 
+            {
+              pytest -rx ./tests --verbose 2>&1
+            } | tee test_output.txt
+            echo "result<<EOF" >> $GITHUB_OUTPUT
+            cat test_output.txt >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          continue-on-error: true
+        - name: Output results
+          if: ${{ steps.tests.outcome == 'failure' }}
+          uses: marocchino/sticky-pull-request-comment@v2
+          with:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            header: Unit test results
+            message: |
+                ``` bash
+                ${{ steps.tests.outputs.result }}
+                ```
+        - name: Fail if tests failed
+          if: ${{ steps.tests.outcome == 'failure' }}
+          run: exit 1
+        
