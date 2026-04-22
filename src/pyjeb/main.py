@@ -4,7 +4,7 @@ import copy
 import dataclasses
 import json
 
-from pyjeb.controls import cast_to_type, check_type, get_controls_of_controls, check_empty, check_validset, check_regex
+from pyjeb.controls import cast_to_type, check_type, get_controls_of_controls, check_empty, check_validset, check_regex, check_controls_consistency
 from pyjeb.expression import apply_expression
 from pyjeb.variables import set_variable_value
 from pyjeb.exception import EmptyParameterException, InvalidTypeParameterException, InvalidValueParameterException, NotProvidedParameterException
@@ -125,10 +125,13 @@ def internal_control_and_setup_scalar(configuration, variables, functions, targe
 
     return configuration
 
-def control_and_setup(configuration: any, controls: list, variables: dict = None, functions: dict = None, to_object: bool = False):
+def control_and_setup(configuration: any, controls: list, variables: dict = None, functions: dict = None, to_object: bool = False, ignore_consistency: bool = False):
     """Apply controls on configuration and setup variables"""
 
     controls = copy.deepcopy(controls)
+
+    if not ignore_consistency:
+        check_controls_consistency(controls)
 
     if variables is None:
         variables = {}

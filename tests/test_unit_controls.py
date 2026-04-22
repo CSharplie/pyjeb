@@ -1,7 +1,9 @@
 from datetime import datetime
+import pytest
 from common import variables, functions
 from pyjeb.main import set_variable_value
-from pyjeb.controls import check_regex, check_type, check_validset, check_empty, cast_to_type
+from pyjeb.controls import check_regex, check_type, check_validset, check_empty, cast_to_type, check_controls_consistency
+from pyjeb.exception import InvalidControlException
 
 def tests_variable_setup():
     """Test set_variable_value function. Ensure the sys/var/func is assigned"""
@@ -115,3 +117,123 @@ def test_cast_to_type():
     for test in test_matrice:
         assert isinstance(cast_to_type(test["input"], test["type_str"]), test["type"])
         assert cast_to_type(test["input"], test["type_str"]) == test["output"]
+
+def test_controls_consistency_valid():
+    """Test check_controls_consistency function with valid controls"""
+
+    # Simple controls without hierarchy
+    controls = [
+        {"name": "name", "type": "string"},
+        {"name": "age", "type": "integer"},
+        {"name": "active", "type": "boolean"},
+    ]
+    check_controls_consistency(controls)  # Should not raise
+
+    # Controls with valid parent-child relationship (dict parent)
+    controls = [
+        {"name": "person", "type": "dict"},
+        {"name": "person.name", "type": "string"},
+        {"name": "person.age", "type": "integer"},
+    ]
+    check_controls_consistency(controls)  # Should not raise
+
+    # Controls with valid parent-child relationship (list parent)
+    controls = [
+        {"name": "colors", "type": "list"},
+        {"name": "colors.name", "type": "string"},
+    ]
+    check_controls_consistency(controls)  # Should not raise
+
+    # Nested hierarchy
+    controls = [
+        {"name": "config", "type": "dict"},
+        {"name": "config.database", "type": "dict"},
+        {"name": "config.database.host", "type": "string"},
+        {"name": "config.database.port", "type": "integer"},
+    ]
+    check_controls_consistency(controls)  # Should not raise
+
+    # Control without explicit type (defaults to string)
+    controls = [
+        {"name": "simple_control"},
+    ]
+    check_controls_consistency(controls)  # Should not raise
+
+def test_controls_consistency_missing_parent():
+    """Test check_controls_consistency function when parent control is missing"""
+
+    # Child control without parent defined
+    controls = [
+        {"name": "person.name", "type": "string"},
+    ]
+    with pytest.raises(InvalidControlException) as exc_info:
+        check_controls_consistency(controls)
+    assert "have no parent control defined" in str(exc_info.value)
+
+    # Nested child without intermediate parent
+    controls = [
+        {"name": "config", "type": "dict"},
+        {"name": "config.database.host", "type": "string"},
+    ]
+    with pytest.raises(InvalidControlException) as exc_info:
+        check_controls_consistency(controls)
+    assert "have no parent control defined" in str(exc_info.value)
+
+def test_controls_consistency_invalid_parent_type():
+    """Test check_controls_consistency function when parent has invalid type"""
+
+    # Parent is string (should be dict or list)
+    controls = [
+        {"name": "person", "type": "string"},
+        {"name": "person.name", "type": "string"},
+    ]
+    with pytest.raises(InvalidControlException) as exc_info:
+        check_controls_consistency(controls)
+    assert "invalid type" in str(exc_info.value)
+    assert "string" in str(exc_info.value)
+
+    # Parent is integer
+    controls = [
+        {"name": "count", "type": "integer"},
+        {"name": "count.value", "type": "string"},
+    ]
+    with pytest.raises(InvalidControlException) as exc_info:
+        check_controls_consistency(controls)
+    assert "invalid type" in str(exc_info.value)
+    assert "integer" in str(exc_info.value)
+
+    # Parent is boolean
+    controls = [
+        {"name": "flag", "type": "boolean"},
+        {"name": "flag.enabled", "type": "boolean"},
+    ]
+    with pytest.raises(InvalidControlException) as exc_info:
+        check_controls_consistency(controls)
+    assert "invalid type" in str(exc_info.value)
+    assert "boolean" in str(exc_info.value)
+
+    # Parent is decimal
+    controls = [
+        {"name": "price", "type": "decimal"},
+        {"name": "price.amount", "type": "decimal"},
+    ]
+    with pytest.raises(InvalidControlException) as exc_info:
+        check_controls_consistency(controls)
+    assert "invalid type" in str(exc_info.value)
+    assert "decimal" in str(exc_info.value)
+
+def test_controls_consistency_case_insensitive():
+    """Test check_controls_consistency function is case insensitive for control names"""
+
+    # Parent defined with different case
+    controls = [
+        {"name": "PERSON", "type": "dict"},
+        {"name": "person.name", "type": "string"},
+    ]
+    check_controls_consistency(controls)  # Should not raise
+
+    controls = [
+        {"name": "person", "type": "dict"},
+        {"name": "PERSON.NAME", "type": "string"},
+    ]
+    check_controls_consistency(controls)  # Should not raise
