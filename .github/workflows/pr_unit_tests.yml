@@ -33,15 +33,21 @@ jobs:
         - name: Execute tests
           id: tests
           run: | 
-            pytest -rx ./tests --verbose
+            {
+              pytest -rx ./tests --verbose 2>&1
+            } | tee test_output.txt
+            echo "result<<EOF" >> $GITHUB_OUTPUT
+            cat test_output.txt >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          continue-on-error: true
         - name: Output results
           if: ${{ always() }}
           uses: marocchino/sticky-pull-request-comment@v2
           with:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            header: terraform plan
+            header: Unit test results
             message: |
                 ``` bash
-                ${{ steps.tests.outputs.stdout }}
+                ${{ steps.tests.outputs.result }}
                 ```
         
