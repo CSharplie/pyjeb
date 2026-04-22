@@ -1,0 +1,47 @@
+name: 'Unit tests'
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'src/**'
+      - 'tests/**'
+  workflow_dispatch:
+permissions:
+    contents: read
+    pull-requests: write
+    issues: write
+jobs:
+    tests:
+        name: 'Execute unit tests'
+        runs-on: ubuntu-22.04
+        defaults:
+          run:
+            shell: bash
+        steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+        - name: Set up Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: "3.12.8"
+        - name: Install requirements
+          run: | 
+            pip install pytest==8.3.3
+        - name: Execute tests
+          id: tests
+          run: | 
+            pytest -rx ./tests --verbose
+        - name: Output results
+          if: ${{ always() }}
+          uses: marocchino/sticky-pull-request-comment@v2
+          with:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            header: terraform plan
+            message: |
+                ``` bash
+                ${{ steps.tests.outputs.stdout }}
+                ```
+        
