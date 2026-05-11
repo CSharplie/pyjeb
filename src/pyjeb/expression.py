@@ -29,24 +29,34 @@ def get_expresion_value(context, value, null, path):
 
     return value
 
+def apply_boolean_expression(expression, context):
+    full_expression = f"if {expression} return 'true'"
+    return apply_expression("false", full_expression, context)
+
 def apply_expression(value, expression, context):
     """Process the provided expression"""
 
-    replace_value_matches = re.findall(r"^ *if *('(.*)'|(null)|([\w\d_\.]+)) *== *('(.*)'|(null)|([\w\d_\.]+)) *return *('(.*)'|(null)|([\w\d_\.]+)) *$", expression)
+    replace_value_matches = re.findall(r"^ *if *('(.*)'|(null)|([\w\d_\.]+)) *(==|<>) *('(.*)'|(null)|([\w\d_\.]+)) *return *('(.*)'|(null)|([\w\d_\.]+)) *$", expression)
 
     if len(replace_value_matches) == 1:
         match = replace_value_matches[0]
 
-        value_from, value_compare, value_return = match[1], match[5], match[9]
-        null_from, null_compare, null_return = match[2], match[6], match[10]
-        path_from, path_compare, path_return = match[3], match[7], match[11]
+        operator = match[4]
+
+        value_from, value_compare, value_return = match[1], match[6], match[10]
+        null_from, null_compare, null_return = match[2], match[7], match[11]
+        path_from, path_compare, path_return = match[3], match[8], match[12]
 
         expression_from = get_expresion_value(context, value_from, null_from, path_from)
         expression_compare = get_expresion_value(context, value_compare, null_compare, path_compare)
         expression_return = get_expresion_value(context, value_return, null_return, path_return)
 
-        if expression_from == expression_compare:
-            return expression_return
+        if operator == "==":
+            if expression_from == expression_compare:
+                return expression_return
+        elif operator == "<>":
+            if expression_from != expression_compare:
+                return expression_return
 
         return value
 
