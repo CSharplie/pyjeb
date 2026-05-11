@@ -1,3 +1,24 @@
+[project]
+name = "pyjeb"
+version = "1.0.5"
+description = "A powerfull lightweight library to check and variabilize your configuration files"
+authors = [{name = "CSharplie"}]
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.6"
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/CSharplie/pyjeb/"
+"Bug Tracker" = "https://github.com/CSharplie/pyjeb/issues"
+CI = "https://github.com/CSharplie/pyjeb/actions"
+Documentation = "https://github.com/CSharplie/pyjeb"
+"Source Code" = "https://github.com/CSharplie/pyjeb"
+Download = "https://pypi.org/project/pyjeb/"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.pytest.ini_options]
 addopts = [
     "--import-mode=importlib",
@@ -5,3 +26,9 @@ addopts = [
 pythonpath = [
   "src", "tests"
 ]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "1.1.0"
+tag_format = "v$version"
+version_files = ["pyproject.toml"]
