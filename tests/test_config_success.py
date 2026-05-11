@@ -93,3 +93,125 @@ def test_configuration_deep_array_success():
 
     assert config_success_obj.workspaces[0].sources[0].hidden is False
     assert config_success_obj.workspaces[1].sources[0].hidden is True
+
+def test_configuration_conditional_controls_success():
+    """Test conditional controls with dynamic default, type, validset and regex."""
+
+    conditional_controls = [
+        {
+            "name": "fields",
+            "type": "list",
+            "default": []
+        },
+        {
+            "name": "fields.name"
+        },
+        {
+            "name": "fields.type",
+            "validset": ["boolean", "number", "string"]
+        },
+        {
+            "name": "fields.format_default",
+            "type": "integer",
+            "if": [
+                {
+                    "expression": "type == 'number'",
+                    "default": "2",
+                    "type": "string"
+                },
+                {
+                    "expression": "type <> 'number'",
+                    "default": "none",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "fields.format_rules",
+            "type": "integer",
+            "if": [
+                {
+                    "expression": "type == 'number'",
+                    "type": "string",
+                    "validset": ["^[0-9]+$"],
+                    "regex": "^[0-9]{1}$"
+                },
+                {
+                    "expression": "type <> 'number'",
+                    "type": "string",
+                    "validset": ["^[a-z0-9-]+$"],
+                    "regex": "^[a-z]+$"
+                }
+            ]
+        },
+        {
+            "name": "fields.mode",
+            "type": "integer",
+            "if": [
+                {
+                    "expression": "type == 'number'",
+                    "type": "string",
+                    "default": "fixed",
+                    "validset": ["fixed", "dynamic"]
+                },
+                {
+                    "expression": "type <> 'number'",
+                    "type": "string",
+                    "default": "none",
+                    "validset": ["none", "auto"]
+                }
+            ]
+        },
+        {
+            "name": "fields.mode_rules",
+            "type": "integer",
+            "if": [
+                {
+                    "expression": "type == 'number'",
+                    "type": "string",
+                    "validset": ["fixed", "dynamic"]
+                },
+                {
+                    "expression": "type <> 'number'",
+                    "type": "string",
+                    "validset": ["none", "auto"]
+                }
+            ]
+        }
+    ]
+
+    configuration = {
+        "fields": [
+            {"name": "price", "type": "number", "format_rules": "4", "mode_rules": "fixed"},
+            {"name": "quantity", "type": "number", "format_rules": "7", "mode_rules": "dynamic"},
+            {"name": "is_active", "type": "boolean", "format_rules": "alpha", "mode_rules": "none"},
+            {"name": "label", "type": "string", "format_rules": "beta", "mode_rules": "auto"}
+        ]
+    }
+
+    config_success = control_and_setup(configuration, conditional_controls)
+
+    assert config_success["fields"][0]["format_default"] == "2"
+    assert config_success["fields"][1]["format_default"] == "2"
+    assert config_success["fields"][2]["format_default"] == "none"
+    assert config_success["fields"][3]["format_default"] == "none"
+
+    assert config_success["fields"][0]["format_rules"] == "4"
+    assert config_success["fields"][1]["format_rules"] == "7"
+    assert config_success["fields"][2]["format_rules"] == "alpha"
+    assert config_success["fields"][3]["format_rules"] == "beta"
+
+    assert config_success["fields"][0]["mode"] == "fixed"
+    assert config_success["fields"][1]["mode"] == "fixed"
+    assert config_success["fields"][2]["mode"] == "none"
+    assert config_success["fields"][3]["mode"] == "none"
+
+    assert config_success["fields"][0]["mode_rules"] == "fixed"
+    assert config_success["fields"][1]["mode_rules"] == "dynamic"
+    assert config_success["fields"][2]["mode_rules"] == "none"
+    assert config_success["fields"][3]["mode_rules"] == "auto"
+
+    assert isinstance(config_success["fields"][0]["format_default"], str)
+    assert isinstance(config_success["fields"][1]["format_default"], str)
+    assert isinstance(config_success["fields"][2]["format_default"], str)
+    assert isinstance(config_success["fields"][3]["format_default"], str)

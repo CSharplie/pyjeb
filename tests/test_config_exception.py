@@ -100,3 +100,114 @@ def test_configuration_deep_array_exceptions():
     assert str(exc_empty_level_1.value) == "The property 'workspaces.name' is not setup and have no default value"
     assert str(exc_empty_level_2.value) == "The property 'workspaces.sources.files' is not setup and have no default value"
     assert str(exc_type.value) == "Property 'workspaces.sources.hidden' has invalid value 'yes' (type must be boolean)"
+
+def test_configuration_conditional_controls_exception():
+    """Test conditional controls with dynamic default, type, validset and regex."""
+
+    conditional_controls = [
+        {
+            "name": "fields",
+            "type": "list",
+            "default": []
+        },
+        {
+            "name": "fields.name"
+        },
+        {
+            "name": "fields.type",
+            "validset": ["boolean", "number", "string"]
+        },
+        {
+            "name": "fields.format_default",
+            "type": "integer",
+            "if": [
+                {
+                    "expression": "type == 'number'",
+                    "default": "2",
+                    "type": "string"
+                },
+                {
+                    "expression": "type <> 'number'",
+                    "default": "none",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "fields.format_rules",
+            "type": "integer",
+            "if": [
+                {
+                    "expression": "type == 'number'",
+                    "type": "string",
+                    "validset": ["^[0-9]+$"],
+                    "regex": "^[0-9]{1}$"
+                },
+                {
+                    "expression": "type <> 'number'",
+                    "type": "string",
+                    "validset": ["^[a-z0-9-]+$"],
+                    "regex": "^[a-z]+$"
+                }
+            ]
+        },
+        {
+            "name": "fields.mode",
+            "type": "integer",
+            "if": [
+                {
+                    "expression": "type == 'number'",
+                    "type": "string",
+                    "default": "fixed",
+                    "validset": ["fixed", "dynamic"]
+                },
+                {
+                    "expression": "type <> 'number'",
+                    "type": "string",
+                    "default": "none",
+                    "validset": ["none", "auto"]
+                }
+            ]
+        },
+        {
+            "name": "fields.mode_rules",
+            "type": "integer",
+            "if": [
+                {
+                    "expression": "type == 'number'",
+                    "type": "string",
+                    "validset": ["fixed", "dynamic"]
+                },
+                {
+                    "expression": "type <> 'number'",
+                    "type": "string",
+                    "validset": ["none", "auto"]
+                }
+            ]
+        }
+    ]
+
+    with pytest.raises(InvalidValueParameterException) as exc_validset:
+        control_and_setup({
+            "fields": [
+                {"name": "price", "type": "number", "format_rules": "A", "mode_rules": "fixed"}
+            ]
+        }, conditional_controls)
+
+    with pytest.raises(InvalidValueParameterException) as exc_regex:
+        control_and_setup({
+            "fields": [
+                {"name": "price", "type": "number", "format_rules": "12", "mode_rules": "fixed"}
+            ]
+        }, conditional_controls)
+
+    with pytest.raises(InvalidValueParameterException) as exc_validset_values:
+        control_and_setup({
+            "fields": [
+                {"name": "price", "type": "number", "format_rules": "4", "mode_rules": "manual"}
+            ]
+        }, conditional_controls)
+
+    assert str(exc_validset.value) == "Property 'fields.format_rules' ('^[0-9]+$') has invalid value 'A'"
+    assert str(exc_regex.value) == "Property 'fields.format_rules' (^[0-9]{1}$) has invalid value '12'"
+    assert str(exc_validset_values.value) == "Property 'fields.mode_rules' ('fixed', 'dynamic') has invalid value 'manual'"
