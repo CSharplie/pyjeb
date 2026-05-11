@@ -9,6 +9,7 @@ def get_controls_of_controls():
     """Get the structure of control configuration"""
 
     return [
+        # Basic controls
         {
             "name": "name",
             "type": "string",
@@ -45,6 +46,43 @@ def get_controls_of_controls():
             "default" : [],
             "expressions": [],
         },
+        # Conditional controls
+        {
+            "name": "if",
+            "type": "list",
+            "default" : [],
+            "expressions": [],
+        },
+        {
+            "name": "if.expression",
+            "type": "string",
+            "expressions": [],
+        },
+        {
+            "name": "if.default",
+            "type": "string",
+            "default" : None,
+            "expressions": [],
+        },
+        {
+            "name": "if.validset",
+            "type": "list",
+            "default" : None,
+            "expressions": [],
+        },
+        {
+            "name": "if.regex",
+            "type": "string",
+            "default" : None,
+            "expressions": [],
+        },
+        {
+            "name": "if.type",
+            "type": "string",
+            "default" : None,
+            "validset" : ["string", "integer", "decimal", "boolean", "list", "dict"],
+            "expressions": [],
+        },
     ]
 
 def check_empty(value, default_defined):
@@ -60,7 +98,7 @@ def check_validset(value, validset):
 
     for regex in validset:
         try:
-            if re.match(regex, value):
+            if value is None or re.match(regex, value):
                 return True
         except re.error:
             continue

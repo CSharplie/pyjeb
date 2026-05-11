@@ -5,7 +5,7 @@ import dataclasses
 import json
 
 from pyjeb.controls import cast_to_type, check_type, get_controls_of_controls, check_empty, check_validset, check_regex, check_controls_consistency
-from pyjeb.expression import apply_expression
+from pyjeb.expression import apply_boolean_expression, apply_expression
 from pyjeb.variables import set_variable_value
 from pyjeb.exception import EmptyParameterException, InvalidTypeParameterException, InvalidValueParameterException, NotProvidedParameterException
 
@@ -28,7 +28,7 @@ def internal_control_and_setup(configuration, control, variables, functions, pre
     if isinstance(configuration, dict):
         return internal_control_and_setup_dict(configuration, control, variables, functions, previous, target_control)
 
-    # apply the logic for each item in a list exept for scalar listes
+    # apply the logic for each item in a list except for scalar lists
     if isinstance(configuration, list) and not all(isinstance(n, (str, int, bool, float)) for n in configuration):
         return internal_control_and_setup_list(configuration, control, variables, functions, previous, target_control)
 
@@ -57,6 +57,22 @@ def internal_control_and_setup_dict(configuration, control, variables, functions
 
         if "nocheck" in current_control.keys() and current_control["nocheck"] is True:
             continue
+
+
+        # Update conditional controls
+        if current_control is not None and "if" in current_control.keys():
+            for condition in current_control["if"]:
+                value = apply_boolean_expression(condition["expression"], configuration)
+                
+                if value.lower() == "true":
+                    if condition["default"] is not None:
+                        configuration[current_name] = condition["default"]
+                    if condition["validset"] is not None:
+                        current_control["validset"] = condition["validset"]
+                    if condition["regex"] is not None:
+                        current_control["regex"] = condition["regex"]
+                    if condition["type"] is not None:
+                        current_control["type"] = condition["type"]
 
         # check if all target keys are setup and setup default values
         if current_name.upper() not in [item.upper() for item in configuration.keys()]:
@@ -89,7 +105,7 @@ def internal_control_and_setup_dict(configuration, control, variables, functions
 
 
 def internal_control_and_setup_list(configuration, control, variables, functions, previous = None, target_control = None):
-    """Apply the logic for each item in a list exept for scalar listes"""
+    """Apply the logic for each item in a list except for scalar lists"""
     for i, current_configuration in enumerate(configuration):
         configuration[i] = internal_control_and_setup(current_configuration, control, variables, functions, previous, configuration, target_control)
     return configuration
