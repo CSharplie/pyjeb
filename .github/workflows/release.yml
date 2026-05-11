@@ -9,6 +9,9 @@ on:
       - 'tests/**'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   publish:
     name: 'Publish on PyPi'
@@ -19,6 +22,10 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -37,11 +44,22 @@ jobs:
       - name: Bump version with Commitizen
         if: steps.check.outputs.skip == 'false'
         run: cz bump --yes
+      - name: Push bumped version back to repository
+        if: steps.check.outputs.skip == 'false'
+        run: |
+          branch=${GITHUB_REF#refs/heads/}
+          git push origin HEAD:$branch --follow-tags
+      - name: Clean previous build artifacts
+        if: steps.check.outputs.skip == 'false'
+        run: rm -rf dist
       - name: Build package
+        if: steps.check.outputs.skip == 'false'
         run: python -m build
       - name: Check package
+        if: steps.check.outputs.skip == 'false'
         run: twine check dist/*
       - name: Publish
+        if: steps.check.outputs.skip == 'false'
         run: |
           if [[ $GITHUB_REF == refs/heads/main ]]; then
             echo "Deploying to production environment"
