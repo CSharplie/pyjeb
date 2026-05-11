@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: "3.12.8"
       - name: Install requirements
-        run: | 
+        run: |
           pip install wheel==0.44.0
           pip install twine==6.0.1
           pip install setuptools==75.1.0
@@ -33,12 +33,12 @@ jobs:
       - name: Check package
         run: twine check dist/*
       - name: Publish
-        run: | 
+        run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             echo "Deploying to production environment"
             twine upload --repository-url https://upload.pypi.org/legacy/ dist/* -u ${{ secrets.PYPI_USER }} -p '${{ secrets.PYPI_PASSWORD }}' --verbose
 
-          else 
+          else
             echo "Deploying to test environment"
             twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u ${{ secrets.PYPI_TEST_USER }} -p '${{ secrets.PYPI_TEST_PASSWORD }}' --verbose
           fi

@@ -1,3 +1,5 @@
+"""Test configuration exceptions."""
+
 import pytest
 from common import controls, controls_deep_array, controls_nested, variables, functions
 from pyjeb.main import control_and_setup

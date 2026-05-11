@@ -28,11 +28,11 @@ jobs:
           with:
             python-version: "3.12.8"
         - name: Install requirements
-          run: | 
+          run: |
             pip install pytest==8.3.3
         - name: Execute tests
           id: tests
-          run: | 
+          run: |
             {
               pytest -rx ./tests --verbose 2>&1
             } | tee test_output.txt
@@ -53,4 +53,3 @@ jobs:
         - name: Fail if tests failed
           if: ${{ steps.tests.outcome == 'failure' }}
           run: exit 1
-        

@@ -1,3 +1,5 @@
+"""Test configuration success."""
+
 from datetime import datetime
 from common import controls, controls_deep_array, controls_nested, variables, functions
 from pyjeb.main import control_and_setup
@@ -9,7 +11,7 @@ def test_config_success():
         "Path": "/root/$var.first_color",
         "Colors": { "cold": "blue" },
         "Count": 10,
-        "Active": False, 
+        "Active": False,
         "Options": {
             "ignore": [
                 "test 1",
@@ -53,7 +55,7 @@ def test_configuration_nested_success():
 
     config_success = control_and_setup(configuration, controls_nested)
     config_success_obj = control_and_setup(configuration, controls_nested, to_object=True)
-    
+
     assert config_success["vehicles"]["cars"][0]["is_broken"] is False
     assert config_success["vehicles"]["cars"][1]["buy_date"] == datetime.today().strftime("%Y-%m-%d")
     assert config_success["vehicles"]["cars"][0]["type"] == "sportive"
@@ -63,7 +65,7 @@ def test_configuration_nested_success():
     assert config_success_obj.vehicles.cars[1].buy_date == datetime.today().strftime("%Y-%m-%d")
     assert config_success_obj.vehicles.cars[0].type == "sportive"
     assert config_success_obj.vehicles.cars[1].type == "usual"
-    
+
 def test_configuration_deep_array_success():
     """Test array inside array with correct sample"""
 

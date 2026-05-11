@@ -23,7 +23,7 @@ pip install pyjeb
 ```
 
 ## Exemple
-Setup a configuration file for your script. 
+Setup a configuration file for your script.
 
 In this exemple a yaml file will be used, but JSON can also be used.
 
@@ -91,7 +91,7 @@ for item in configuration:
   # apply the control and instantiate variables
   item_configuration = control_and_setup(item_configuration, control, to_object = True)
 
-  # display values 
+  # display values
   print(f"--------------- {item}")
   print(f"source.path = '{item_configuration.source.path}'")
   print(f"source.pattern = '{item_configuration.source.pattern}'")
@@ -145,5 +145,5 @@ HR - Payroll:
 
 # Controls
 The controls are a list of dictionaries. Each dictionary is a control to apply on the configuration.
-  
+
 See all about the structure in [controls page](https://github.com/CSharplie/pyjeb/wiki/controls-configuration)
