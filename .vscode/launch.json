@@ -2,17 +2,17 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Sandbox debug",
-            "type": "python",
+            "name": "Python: Debug Code",
+            "type": "debugpy",
             "request": "launch",
-            "program": "sandbox.py",
+            "program": "debug.py",
             "cwd": "${workspaceFolder}/src",
             "console": "integratedTerminal",
             "justMyCode": true
         },
         {
             "name": "Python: Debug Tests",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "pytest",
             "purpose": ["debug-test"],

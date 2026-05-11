@@ -4,5 +4,5 @@ __pycache__
 src/build
 src/dist
 src/pyjeb.egg-info
-src/sandbox
-src/sandbox.py
+src/debug
+src/debug.py
