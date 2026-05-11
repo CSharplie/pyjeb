@@ -63,7 +63,7 @@ def internal_control_and_setup_dict(configuration, control, variables, functions
         if current_control is not None and "if" in current_control.keys():
             for condition in current_control["if"]:
                 value = apply_boolean_expression(condition["expression"], configuration)
-                
+
                 if value.lower() == "true":
                     if condition["default"] is not None:
                         configuration[current_name] = condition["default"]
