@@ -17,5 +17,5 @@
             }
         }
     },
-    "postCreateCommand": "pip install pytest pylint pre-commit && pre-commit install"
+    "postCreateCommand": "bash .devcontainer/setup.sh"
 }
