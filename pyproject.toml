@@ -1,6 +1,6 @@
 [project]
 name = "pyjeb"
-version = "1.1.0"
+version = "1.2.0"
 description = "A powerfull lightweight library to check and variabilize your configuration files"
 authors = [{name = "CSharplie"}]
 readme = "README.md"
