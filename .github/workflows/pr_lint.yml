@@ -32,7 +32,7 @@ jobs:
       id: lint
       run: |
         {
-          pylint src/*.py src/ 2>&1
+          pylint src/ 2>&1
         } | tee lint_output.txt
         echo "result<<EOF" >> $GITHUB_OUTPUT
         cat lint_output.txt >> $GITHUB_OUTPUT
