@@ -1,3 +1,5 @@
+"""Common variables, functions and controls for tests."""
+
 variables = {
     "first_color": "red",
     "second_color" : "blue"

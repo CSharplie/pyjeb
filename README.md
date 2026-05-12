@@ -1,102 +1,73 @@
-# Pyjeb
+# PyJeb
 
-PyJeb is a powerfull lightweight library to check and variabilize your configuration files.
-The main features of pyjeb are:
+PyJeb is a lightweight Python library to validate and variabilize your configuration files.
 
-* Control the structure of a configuration file (missing value, type, format, valid set)
-* Add default value for missing fields
-* Setup variable values (system or user defined)
-* Allow case insensitive parameters
-* Allow to add executable functions in configuration
+- Validate configuration structure: required fields, types, format, allowed values
+- Set default values for optional fields
+- Inject dynamic values: system variables, user variables, custom functions
+- Case-insensitive parameter matching
+- Expose configuration as an attribute-accessible Python object
 
-# Get started
-## Steps
-1. Install PyJeb package
-2. Setup [control file](https://github.com/CSharplie/pyjeb/wiki/controls-configuration)
-3. Setup configuration file
-4. Call [control_and_setup](https://github.com/CSharplie/pyjeb/wiki/control_and_setup) function
+## Installation
 
-## Install PyJeb
-Install from [PyPi](https://pypi.org/project/pyjeb/) package manager:
-``` shell
+```shell
 pip install pyjeb
 ```
 
-## Exemple
-Setup a configuration file for your script. 
+## Quick example
 
-In this exemple a yaml file will be used, but JSON can also be used.
+_job.yaml_
+```yaml
+ingest_customers:
+  source:
+    path: "/landing/$var.env/customers/$sys.timestamp('YYYY-MM-DD')"
+    format: "csv"
+  target:
+    path: "/bronze/$var.env/customers"
 
-_Exemple of yaml configuration file - configuration.yaml_
-``` yaml
-HR - Employees:
+ingest_orders:
   source:
-    path: "/Landing/HR/Employees/$sys.timestamp('YYYY-MM-DD')"
-    pattern: "*.csv"
+    path: "/landing/$var.env/orders/$sys.timestamp('YYYY-MM-DD')"
+    format: "json"
   target:
-    path: "/Bronze/HR/Employees"
-HR - Managers:
-  source:
-    path: "/Landing/HR/Managers/$sys.timestamp('YYYY-MM-DD')"
-  target:
-    path: "/Bronze/HR/Managers"
-HR - Payroll:
-  source:
-    path: "/Landing/HR/Payroll/$sys.timestamp('YYYY-MM-DD')"
-  target:
-    path: "/Bronze/HR/Payroll"
+    path: "/bronze/$var.env/orders"
 ```
 
-Setup a configuration to describe the previous configuration file and add default value for non mendatory field
-
-_Exemple of yaml configuration file - control.yaml_
-``` python
-control = [
-  { "name": "source", "type": "dict" },
-  { "name": "source.path" },
-  { "name": "source.pattern", "default": "*" },
-  { "name": "target", "type": "dict" },
-  { "name": "target.path" },
-]
-```
-
-Load the configuration and apply function _control_and_setup_ function with control parameters.
-
-This function will:
-- Setup default if the value is not defined
-- Setup value of variable ($sys.timestamp in this exemple)
-- Set configuration as object (callable with dots)
-
-``` python
+```python
 import yaml
 from pyjeb import control_and_setup
 
-# load configuration file
-with open("configuration.yaml") as f:
-  configuration = yaml.load(f, Loader = yaml.loader.SafeLoader)
+with open("job.yaml") as f:
+    config = yaml.safe_load(f)
 
-# control configuration
-control = [
-  { "name": "source", "type": "dict" },
-  { "name": "source.path" },
-  { "name": "source.pattern", "default": "*" },
-  { "name": "target", "type": "dict" },
-  { "name": "target.path" },
+controls = [
+    { "name": "source", "type": "dict" },
+    { "name": "source.path" },
+    { "name": "source.format", "validset": ["csv", "json", "parquet"] },
+    { "name": "source.pattern", "default": "*" },
+    { "name": "target", "type": "dict" },
+    { "name": "target.path" },
+    { "name": "target.mode", "default": "append", "validset": ["append", "overwrite"] },
+    { "name": "enabled", "type": "boolean", "default": True },
+    { "name": "max_retries", "type": "integer", "default": 3 },
 ]
 
-# loop on each item in configuration
-for item in configuration:
-  item_configuration = configuration[item]
+variables = { "env": "prod" }
 
-  # apply the control and instantiate variables
-  item_configuration = control_and_setup(item_configuration, control, to_object = True)
-
-  # display values 
-  print(f"--------------- {item}")
-  print(f"source.path = '{item_configuration.source.path}'")
-  print(f"source.pattern = '{item_configuration.source.pattern}'")
-  print(f"target.path = '{item_configuration.target.path}'")
+for job_name, job_config in config.items():
+    job = control_and_setup(job_config, controls, variables=variables, to_object=True)
+    print(f"{job_name}: {job.source.path} → {job.target.path}")
 ```
+
+Output (run on 2026-05-11):
+```
+ingest_customers: /landing/prod/customers/2026-05-11 → /bronze/prod/customers
+ingest_orders: /landing/prod/orders/2026-05-11 → /bronze/prod/orders
+```
+
+## Documentation
+
+Full documentation is available on the [GitHub wiki](https://github.com/CSharplie/pyjeb/wiki).
 
 _Output of the script_
 ``` ini
@@ -145,5 +116,5 @@ HR - Payroll:
 
 # Controls
 The controls are a list of dictionaries. Each dictionary is a control to apply on the configuration.
-  
+
 See all about the structure in [controls page](https://github.com/CSharplie/pyjeb/wiki/controls-configuration)
