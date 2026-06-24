@@ -217,3 +217,80 @@ def test_configuration_conditional_controls_success():
     assert isinstance(config_success["fields"][1]["format_default"], str)
     assert isinstance(config_success["fields"][2]["format_default"], str)
     assert isinstance(config_success["fields"][3]["format_default"], str)
+
+
+def test_if_default_string():
+    """`if.default` assigns a string default when condition matches."""
+
+    controls = [
+        {"name": "items", "type": "list", "default": []},
+        {"name": "items.value", "type": "string"},
+        {
+            "name": "items.extra",
+            "type": "string",
+            "if": [
+                {"expression": "value == 'use_string'", "default": "a_string"}
+            ],
+        },
+    ]
+
+    configuration = {"items": [{"value": "use_string"}]}
+    result = control_and_setup(configuration, controls)
+    assert result["items"][0]["extra"] == "a_string"
+
+def test_if_default_list():
+    """`if.default` assigns a list default when condition matches."""
+
+    controls = [
+        {"name": "items", "type": "list", "default": []},
+        {"name": "items.value", "type": "string"},
+        {
+            "name": "items.extra",
+            "type": "list",
+            "if": [
+                {"expression": "value == 'use_list'", "default": ["one", "two"]}
+            ],
+        },
+    ]
+
+    configuration = {"items": [{"value": "use_list"}]}
+    result = control_and_setup(configuration, controls)
+    assert result["items"][0]["extra"] == ["one", "two"]
+
+def test_if_default_none():
+    """`if.default` assigns None when condition matches."""
+
+    controls = [
+        {"name": "items", "type": "list", "default": []},
+        {"name": "items.value", "type": "string"},
+        {
+            "name": "items.extra",
+            "type": "string",
+            "if": [
+                {"expression": "value == 'use_none'", "default": None}
+            ],
+        },
+    ]
+
+    configuration = {"items": [{"value": "use_none"}]}
+    result = control_and_setup(configuration, controls)
+    assert result["items"][0]["extra"] is None
+
+def test_if_default_dict():
+    """`if.default` assigns a dict default when condition matches."""
+
+    controls = [
+        {"name": "items", "type": "list", "default": []},
+        {"name": "items.value", "type": "string"},
+        {
+            "name": "items.extra",
+            "type": "dict",
+            "if": [
+                {"expression": "value == 'use_dict'", "default": {"k": "v"}}
+            ],
+        },
+    ]
+
+    configuration = {"items": [{"value": "use_dict"}]}
+    result = control_and_setup(configuration, controls, variables, functions)
+    assert result["items"][0]["extra"] == {"k": "v"}

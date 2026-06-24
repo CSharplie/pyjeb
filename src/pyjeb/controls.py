@@ -63,6 +63,7 @@ def get_controls_of_controls():
             "type": "string",
             "default" : None,
             "expressions": [],
+            "nocheck" : True,
         },
         {
             "name": "if.validset",
