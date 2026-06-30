@@ -65,13 +65,13 @@ def internal_control_and_setup_dict(configuration, control, variables, functions
                 value = apply_boolean_expression(condition["expression"], configuration)
 
                 if value.lower() == "true":
-                    if condition["default"] is not None:
-                        configuration[current_name] = condition["default"]
-                    if condition["validset"] is not None:
+                    if "default" in condition.keys():
+                        current_control["default"] = condition["default"]
+                    if "validset" in condition.keys() and condition["validset"] is not None:
                         current_control["validset"] = condition["validset"]
-                    if condition["regex"] is not None:
+                    if "regex" in condition.keys() and condition["regex"] is not None:
                         current_control["regex"] = condition["regex"]
-                    if condition["type"] is not None:
+                    if "type" in condition.keys() and condition["type"] is not None:
                         current_control["type"] = condition["type"]
 
         # check if all target keys are setup and setup default values
